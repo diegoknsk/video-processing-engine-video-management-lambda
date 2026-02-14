@@ -1,0 +1,22 @@
+---
+alwaysApply: true
+description: "Convenções essenciais .NET — código idiomático, nomenclatura, C# moderno e padrões universais. Quick reference e skills por contexto."
+---
+
+# Core .NET — Convenções Universais
+
+- Código **conciso e idiomático**, seguindo convenções Microsoft; **.NET 10** (ou LTS) com **C# 13**.
+- Nomenclatura: PascalCase (tipos, métodos), camelCase (locais, campos privados), UPPERCASE (constantes), prefixo `I` em interfaces.
+- **Construtores primários** para DI; **collection expressions**; async/await para I/O; **System.Text.Json**; DI no bootstrap; **não** instanciar serviços fora do bootstrap.
+
+**Quick Reference:** para tabela de decisão rápida e princípios-chave, consultar `.cursor/documents/quick-reference.md`.
+
+**Skills por contexto:** aplicar skill conforme a tarefa:
+- DB/repositórios → `.cursor/skills/database-persistence/SKILL.md`
+- APIs externas → `.cursor/skills/external-api-refit/SKILL.md`
+- Validação → `.cursor/skills/validation-fluentvalidation/SKILL.md`
+- Testes → `.cursor/skills/testing/SKILL.md`
+- Segurança → `.cursor/skills/security/SKILL.md`
+- Performance → `.cursor/skills/performance-optimization/SKILL.md`
+- Observabilidade → `.cursor/skills/observability/SKILL.md`
+- Lambda API → `.cursor/skills/lambda-api-hosting/SKILL.md`
