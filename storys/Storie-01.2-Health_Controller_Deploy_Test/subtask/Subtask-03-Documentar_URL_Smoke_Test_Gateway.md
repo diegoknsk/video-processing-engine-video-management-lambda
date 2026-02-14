@@ -14,6 +14,6 @@ Documentar como montar a URL pública do smoke test (GET /health) quando a API e
 2. Teste real: após deploy, usar a URL documentada e validar 200.
 
 ## Critérios de Aceite da Subtask
-- [ ] Documentação descreve como montar a URL do smoke test (base + stage + prefix + /health)
-- [ ] Exemplos para cenários: stage nomeado + prefixo; $default + prefixo
-- [ ] Variáveis GATEWAY_PATH_PREFIX e GATEWAY_STAGE documentadas (descrição, quando definir, exemplos)
+- [x] Documentação descreve como montar a URL do smoke test (base + stage + prefix + /health)
+- [x] Exemplos para cenários: stage nomeado + prefixo; $default + prefixo
+- [x] Variáveis GATEWAY_PATH_PREFIX e GATEWAY_STAGE documentadas (descrição, quando definir, exemplos)

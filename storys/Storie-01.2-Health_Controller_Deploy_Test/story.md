@@ -1,8 +1,8 @@
 # Storie-01.2: Health Controller para Teste de Deploy (Gateway)
 
 ## Status
-- **Estado:** 🔄 Em desenvolvimento
-- **Data de Conclusão:** —
+- **Estado:** ✅ Concluída
+- **Data de Conclusão:** 14/02/2026
 
 ## Descrição
 Como desenvolvedor/DevOps, quero ter um endpoint GET /health e o middleware de gateway (GATEWAY_PATH_PREFIX, GATEWAY_STAGE) configurados assim que tivermos o mínimo da API, para validar o deploy atrás do API Gateway e garantir que a URL pública do smoke test funcione corretamente.
@@ -33,16 +33,16 @@ Garantir endpoint GET /health pronto para teste de deploy e configurar o pipelin
 - [Subtask 03: Documentar URL do smoke test e variáveis de gateway](./subtask/Subtask-03-Documentar_URL_Smoke_Test_Gateway.md)
 
 ## Critérios de Aceite da História
-- [ ] GET /health retorna 200 OK com JSON `{ "status": "healthy", "timestamp": "<UTC ISO 8601>" }` (local e atrás do gateway)
-- [ ] GatewayPathBaseMiddleware implementado: lê GATEWAY_STAGE (opcional) e GATEWAY_PATH_PREFIX (opcional); remove stage do path; define PathBase e Path quando prefixo presente; ordem de aplicação: primeiro stage, depois prefix
-- [ ] Middleware registrado no pipeline **antes** de `UseRouting()` (conforme skill lambda-api-hosting)
-- [ ] Sem GATEWAY_PATH_PREFIX/GATEWAY_STAGE definidas: path não é alterado; GET /health funciona em `http://localhost:PORT/health`
-- [ ] Com GATEWAY_PATH_PREFIX=/videos e GATEWAY_STAGE=default: request `rawPath = "/default/videos/health"` resulta em PathBase=`/videos`, Path=`/health` e rota /health é encontrada
-- [ ] Documentação (docs ou README) descreve como montar a URL do smoke test: `{API_GATEWAY_BASE_URL}/{stage}/{path_prefix}/health` (ex.: `https://xxx.execute-api.region.amazonaws.com/default/videos/health`)
-- [ ] Teste local com variáveis GATEWAY_PATH_PREFIX e GATEWAY_STAGE setadas valida que GET na URL simulada (ex.: /default/videos/health) retorna 200
-- [ ] Testes unitários para o middleware (opcional nesta story): validar reescrita do path para combinações stage/prefix
+- [x] GET /health retorna 200 OK com JSON `{ "status": "healthy", "timestamp": "<UTC ISO 8601>" }` (local e atrás do gateway)
+- [x] GatewayPathBaseMiddleware implementado: lê GATEWAY_STAGE (opcional) e GATEWAY_PATH_PREFIX (opcional); remove stage do path; define PathBase e Path quando prefixo presente; ordem de aplicação: primeiro stage, depois prefix
+- [x] Middleware registrado no pipeline **antes** de `UseRouting()` (conforme skill lambda-api-hosting)
+- [x] Sem GATEWAY_PATH_PREFIX/GATEWAY_STAGE definidas: path não é alterado; GET /health funciona em `http://localhost:PORT/health`
+- [x] Com GATEWAY_PATH_PREFIX=/videos e GATEWAY_STAGE=default: request `rawPath = "/default/videos/health"` resulta em PathBase=`/videos`, Path=`/health` e rota /health é encontrada
+- [x] Documentação (docs ou README) descreve como montar a URL do smoke test: `{API_GATEWAY_BASE_URL}/{stage}/{path_prefix}/health` (ex.: `https://xxx.execute-api.region.amazonaws.com/default/videos/health`)
+- [x] Teste local com variáveis GATEWAY_PATH_PREFIX e GATEWAY_STAGE setadas valida que GET na URL simulada (ex.: /default/videos/health) retorna 200
+- [x] Testes unitários para o middleware (opcional nesta story): validar reescrita do path para combinações stage/prefix
 
 ## Rastreamento (dev tracking)
-- **Início:** —
-- **Fim:** —
-- **Tempo total de desenvolvimento:** —
+- **Início:** 14/02/2026 20:08
+- **Fim:** 14/02/2026 20:41
+- **Tempo total de desenvolvimento:** 33min
