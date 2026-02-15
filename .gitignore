@@ -22,11 +22,20 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+.vs/
 
 # .NET Core
 project.lock.json
 project.fragment.lock.json
 artifacts/
+
+# Publish output (incl. dry run) and build/test logs
+publish/
+publish_dry_run/
+build_log.txt
+build_output.txt
+test_output.txt
+test_output_ascii.txt
 
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt

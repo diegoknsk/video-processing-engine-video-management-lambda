@@ -8,7 +8,7 @@ O **middleware** `GatewayPathBaseMiddleware` remove o stage (quando configurado)
 
 | Nome | Obrigatória | Descrição |
 |------|-------------|-----------|
-| `GATEWAY_PATH_PREFIX` | Não | Prefixo de path que o gateway adiciona antes de encaminhar para a Lambda (ex.: `/auth`, `/autenticacao`). |
+| `GATEWAY_PATH_PREFIX` | Não | Prefixo de path que o gateway adiciona antes de encaminhar para a Lambda (ex.: `/videos`, `/v1/videos`). |
 | `GATEWAY_STAGE` | Não | Nome do stage do API Gateway HTTP API quando **não** é `$default`. Quando o stage é nomeado (ex.: `default`), o path que chega na Lambda vem com o stage no início (ex.: `/default/health`). Defina com o nome do stage (ex.: `default`) para que o middleware remova esse segmento e a rota `/health` seja encontrada. Se usar o stage `$default`, não defina esta variável. |
 | `API_PUBLIC_BASE_URL` | Não | **Opcional.** URL pública base da API (ex.: `https://xxx.../dev/auth`). Na prática não é necessária: o server do OpenAPI é preenchido a partir do próprio request (Scheme + Host + PathBase) quando o Scalar solicita o JSON, então o "Try it" já usa a URL correta. Use só se o documento for gerado sem contexto de request (casos edge). |
 
@@ -43,7 +43,7 @@ A ordem de aplicação é: primeiro remoção do stage (GATEWAY_STAGE), depois r
 1. No **API Gateway**, configure a rota que encaminha para a Lambda (ex.: `ANY /auth/{proxy+}` ou `GET /auth/health`, `POST /auth/login`, etc.).
 2. Na **Lambda**, defina as variáveis de ambiente conforme o caso:
    - Se o HTTP API usar um **stage nomeado** (ex.: `default`) e não `$default`, defina **`GATEWAY_STAGE`** com o nome do stage (ex.: `default`). Assim, paths como `/default/health` passam a ser roteados como `/health`.
-   - Se as rotas do gateway tiverem um prefixo (ex.: `/auth`), defina **`GATEWAY_PATH_PREFIX=/auth`** (ou o valor exato do prefixo que o gateway usa no path enviado à Lambda).
+   - Se as rotas do gateway tiverem um prefixo (ex.: `/videos`), defina **`GATEWAY_PATH_PREFIX=/videos`** (ou o valor exato do prefixo que o gateway usa no path enviado à Lambda).
    - Para que o **Scalar UI** (documentação interativa) monte as URLs corretas ao usar "Try it" quando acessado pelo gateway, defina **`API_PUBLIC_BASE_URL`** com a URL base pública completa, incluindo stage e prefixo (ex.: `https://h42x24ov55.execute-api.us-east-1.amazonaws.com/dev/auth`).
 3. A aplicação passa a receber o path já “sem” stage e sem prefixo para roteamento: `/health`, `/login`, `/users/create`.
 
@@ -71,7 +71,25 @@ Em **CloudFormation** ou **Console da AWS**: adicione as variáveis de ambiente 
 As rotas expostas pela API são sempre:
 
 - `GET /health` — health check
-- `POST /login` — login
-- `POST /users/create` — criação de usuário
+- `GET /videos` — listagem de vídeos (exemplo)
 
-Localmente, use essas rotas diretamente. Atrás do gateway com prefixo `/auth`, a URL pública será algo como `https://.../auth/health`, `https://.../auth/login`, etc.; internamente o middleware faz o path ser `/health`, `/login`, etc.
+## URL do smoke test
+
+Para validar o deploy, utilize a rota de health check. A URL final depende da configuração do API Gateway (se usa stage nomeado ou `$default`) e do prefixo configurado.
+
+**Fórmula:**
+`{API_GATEWAY_BASE_URL}/{stage?}/{path_prefix}/health`
+
+- **{stage?}**: se o stage for nomeado (ex.: `default`), ele aparece na URL. Se for `$default`, ele é omitido.
+- **{path_prefix}**: prefixo configurado para este serviço no gateway (ex.: `/videos`).
+
+**Exemplos:**
+
+1. Stage `$default`, prefixo `/videos`:
+   `https://xyz.execute-api.us-east-1.amazonaws.com/videos/health`
+
+2. Stage nomeado `default`, prefixo `/videos`:
+   `https://xyz.execute-api.us-east-1.amazonaws.com/default/videos/health`
+
+3. Stage `$default`, sem prefixo (raiz):
+   `https://xyz.execute-api.us-east-1.amazonaws.com/health`

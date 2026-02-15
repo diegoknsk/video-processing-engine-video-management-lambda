@@ -15,7 +15,7 @@ Garantir que a API expõe GET /health retornando 200 OK com JSON `{ "status": "h
 3. Validação de contrato: corpo contém "status":"healthy" e "timestamp" em formato ISO 8601.
 
 ## Critérios de Aceite da Subtask
-- [ ] GET /health implementado e retorna 200 OK
-- [ ] Resposta JSON com "status": "healthy" e "timestamp" (UTC, ISO 8601)
-- [ ] Rota é pública (sem autorização)
-- [ ] `curl http://localhost:PORT/health` retorna resposta esperada
+- [x] GET /health implementado e retorna 200 OK
+- [x] Resposta JSON com "status": "healthy" e "timestamp" (UTC, ISO 8601)
+- [x] Rota é pública (sem autorização)
+- [x] `curl http://localhost:PORT/health` retorna resposta esperada

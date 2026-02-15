@@ -17,8 +17,8 @@ Implementar o middleware que reescreve o path da requisição quando a API está
 4. Teste unitário do middleware: injetar path e variáveis de ambiente; validar Path/PathBase resultantes.
 
 ## Critérios de Aceite da Subtask
-- [ ] GatewayPathBaseMiddleware implementado e registrado antes de UseRouting()
-- [ ] GATEWAY_STAGE: remove primeiro segmento do path quando coincide (case-insensitive)
-- [ ] GATEWAY_PATH_PREFIX: define PathBase e Path quando path começa com o prefixo (case-insensitive)
-- [ ] Variáveis vazias ou não definidas: path inalterado
-- [ ] Documentação de referência (docs/gateway-path-prefix.md ou lambda-api-hosting) respeitada
+- [x] GatewayPathBaseMiddleware implementado e registrado antes de UseRouting()
+- [x] GATEWAY_STAGE: remove primeiro segmento do path quando coincide (case-insensitive)
+- [x] GATEWAY_PATH_PREFIX: define PathBase e Path quando path começa com o prefixo (case-insensitive)
+- [x] Variáveis vazias ou não definidas: path inalterado
+- [x] Documentação de referência (docs/gateway-path-prefix.md ou lambda-api-hosting) respeitada
