@@ -1,6 +1,6 @@
-# Processo de subida – Deploy Lambda (GitHub Actions)
+# Processo de subida – Deploy Lambda Video Management (GitHub Actions)
 
-Este documento registra o **processo de subida** e **todas as variáveis e secrets** que precisam ser configurados para o deploy da Auth API no AWS Lambda via GitHub Actions.
+Este documento registra o **processo de subida** e **variáveis e secrets** necessários para o deploy da **Video Management API** no AWS Lambda via GitHub Actions.
 
 ---
 
@@ -16,42 +16,33 @@ Configurar em: **Settings** → **Secrets and variables** → **Actions** → **
 | **AWS_SECRET_ACCESS_KEY** | Secret Access Key correspondente | Sempre (deploy) |
 | **AWS_SESSION_TOKEN** | Token de sessão (obrigatório quando usar credenciais temporárias STS) | Autenticação com token / AssumeRole |
 
-**Região:** use apenas a **Variable** `AWS_REGION` (ou o input manual no workflow). Ordem: input manual → variable `AWS_REGION` → padrão `us-east-1`.
+**Região:** use a **Variable** `AWS_REGION` (ou o input manual no workflow). Ordem: input manual → variable `AWS_REGION` → padrão `us-east-1`.
 
 ### 1.2 GitHub Variables (opcionais)
 
 Configurar em: **Settings** → **Secrets and variables** → **Actions** → **Variables** → **New repository variable**.
 
+O workflow envia estas variáveis para o Lambda no step **Update Lambda configuration**. Só preencha as que forem usar.
+
 | Variable | Descrição | Padrão no workflow |
 |----------|-----------|---------------------|
 | **AWS_REGION** | Região AWS do Lambda | `us-east-1` |
-| **LAMBDA_FUNCTION_NAME** | Nome da função Lambda | `video-processing-engine-dev-auth` |
-| **COGNITO_USER_POOL_ID** | ID do Cognito User Pool (injetado no Lambda como `Cognito__UserPoolId`) | — |
-| **COGNITO_CLIENT_ID** | App Client ID do Cognito (injetado no Lambda como `Cognito__ClientId`) | — |
-| **GATEWAY_PATH_PREFIX** | Prefixo de path do API Gateway (ex.: `/auth`). Injetado no Lambda; quando a API está atrás de um gateway com prefixo, a aplicação remove esse prefixo do path. Deixe vazio se não usar prefixo. Ver [gateway-path-prefix.md](gateway-path-prefix.md). | — (vazio = path inalterado) |
+| **LAMBDA_FUNCTION_NAME** | Nome da função Lambda | `video-processing-engine-dev-video-management` |
+| **GATEWAY_PATH_PREFIX** | Prefixo de path do API Gateway (ex.: `/videos`). A aplicação remove esse prefixo do path. Deixe vazio se não usar prefixo. Ver [gateway-path-prefix.md](gateway-path-prefix.md). | — (vazio = path inalterado) |
+| **DYNAMODB_TABLE_NAME** | Nome da tabela DynamoDB (injetado como `DynamoDB__TableName`) | — |
+| **S3_BUCKET_VIDEO** | Bucket S3 para vídeos (injetado como `S3__BucketVideo`) | — |
+| **S3_BUCKET_FRAMES** | Bucket S3 para frames (injetado como `S3__BucketFrames`) | — |
+| **S3_BUCKET_ZIP** | Bucket S3 para zip (injetado como `S3__BucketZip`) | — |
+| **COGNITO_USER_POOL_ID** | ID do Cognito User Pool (injetado como `Cognito__UserPoolId`) | — |
+| **COGNITO_CLIENT_ID** | App Client ID do Cognito (injetado como `Cognito__ClientId`) | — |
 
-- O workflow **atualiza as variáveis de ambiente do Lambda** em todo deploy (Cognito, se as Variables acima estiverem preenchidas, e **GATEWAY_PATH_PREFIX**). As variáveis são mescladas com as já existentes na função.
-- Valores de referência (ex.: ambiente de desenvolvimento) estão em `src/VideoProcessing.Auth.Api/appsettings.Development.json` (seção `Cognito`). Exemplo:
+- **DynamoDB / S3:** configure quando for usar persistência e storage (tabela e buckets já criados na AWS).
+- **Cognito:** configure quando a API precisar validar tokens do User Pool.
+- O workflow sempre envia: `AWS__Region`, `DynamoDB__Region`, `S3__Region`, `Cognito__Region` (usando a região do deploy), `GATEWAY_PATH_PREFIX` e `ASPNETCORE_ENVIRONMENT=Production`. As Variables acima preenchem os valores específicos (tabela, buckets, Cognito).
 
-```json
-"Cognito": {
-  "Region": "us-east-1",
-  "UserPoolId": "us-east-1_LYDOopM5u",
-  "ClientId": "5sc99v1fok2qjrpbr06mcr2a1e"
-}
-```
+### 1.3 Execução manual
 
-- **Region** do Cognito no Lambda usa a mesma região do deploy (`AWS_REGION` do workflow).
-
-### 1.3 Inputs do workflow (execução manual)
-
-Ao rodar manualmente: **Actions** → **Deploy Lambda Auth API** → **Run workflow**.
-
-| Input | Obrigatório | Descrição |
-|-------|-------------|-----------|
-| **lambda_function_name** | Não | Override do nome do Lambda |
-| **aws_region** | Não | Override da região AWS |
-| **gateway_path_prefix** | Não | Override do prefixo de path do API Gateway (ex.: `/auth`). Usa a Variable `GATEWAY_PATH_PREFIX` se vazio. |
+Ao rodar manualmente: **Actions** → **Deploy Lambda Video Management** → **Run workflow** → escolher a **branch**. Nome do Lambda, região e prefixo do gateway vêm das **Variables** do repositório (não há inputs para preencher).
 
 ---
 
@@ -60,10 +51,10 @@ Ao rodar manualmente: **Actions** → **Deploy Lambda Auth API** → **Run workf
 | Onde | O que setar |
 |------|-------------|
 | **GitHub Secrets** | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`; se usar token/STS: `AWS_SESSION_TOKEN` |
-| **GitHub Variables** | Opcional: `AWS_REGION`, `LAMBDA_FUNCTION_NAME`; para injetar Cognito no Lambda: `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID`; para prefixo do API Gateway: `GATEWAY_PATH_PREFIX` (ex.: `/auth`) |
-| **Lambda (AWS)** | Se não usar Variables do Cognito no workflow: configurar manualmente no Lambda `Cognito__Region`, `Cognito__UserPoolId`, `Cognito__ClientId` |
+| **GitHub Variables** | Opcional: `AWS_REGION`, `LAMBDA_FUNCTION_NAME`, `GATEWAY_PATH_PREFIX` (ex.: `/videos`). Quando for usar: `DYNAMODB_TABLE_NAME`, `S3_BUCKET_VIDEO`, `S3_BUCKET_FRAMES`, `S3_BUCKET_ZIP`, `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID` |
+| **Lambda (AWS)** | Se não usar Variables no workflow: configurar manualmente no Lambda as env vars necessárias (DynamoDB, S3, Cognito, etc.) |
 
-O **Handler** da função Lambda deve ser configurado via IaC (Terraform/CloudFormation) na criação da função.
+O **Handler** da função Lambda é atualizado pelo workflow: `VideoProcessing.VideoManagement.Api`.
 
 ---
 
@@ -76,44 +67,27 @@ Quando a autenticação for com **credenciais temporárias** (ex.: AssumeRole, S
    - **AWS_SECRET_ACCESS_KEY**
    - **AWS_SESSION_TOKEN** (obrigatório nesse cenário)
 
-2. O workflow já está preparado: o step **Configure AWS credentials** recebe o token pelo **input** `aws-session-token` (valor de `secrets.AWS_SESSION_TOKEN`). O token deve ser passado pelo input da action, não só por variável de ambiente, para que as credenciais temporárias sejam usadas corretamente nos steps seguintes.
+2. O workflow usa `secrets.AWS_SESSION_TOKEN` no step **Configure AWS credentials**.
 
 3. Região: **Variable** `AWS_REGION` ou input manual no Run workflow; padrão `us-east-1`.
 
 ---
 
-## 4. Configuração Cognito (api / appsettings)
-
-A API lê Cognito de variáveis de ambiente no Lambda com os nomes:
-
-- `Cognito__Region`
-- `Cognito__UserPoolId`
-- `Cognito__ClientId`
-
-Duas formas de preencher:
-
-1. **Pelo workflow (recomendado):** setar no repositório as GitHub Variables **COGNITO_USER_POOL_ID** e **COGNITO_CLIENT_ID**. O workflow aplica essas variáveis na função Lambda (mesclando com as já existentes). A região usada é a do deploy (`AWS_REGION`).
-2. **Manual na AWS:** na função Lambda, em **Configuration** → **Environment variables**, definir `Cognito__Region`, `Cognito__UserPoolId` e `Cognito__ClientId`.
-
-Os valores podem ser os mesmos do `appsettings.Development.json` (para dev) ou outros para produção.
-
----
-
-## 5. Processo de subida (passo a passo)
+## 4. Processo de subida (passo a passo)
 
 1. **Repositório**
-   - Configurar todos os **Secrets** necessários (incluindo `AWS_SESSION_TOKEN` se for auth com token).
-   - (Opcional) Configurar **Variables**: `AWS_REGION`, `LAMBDA_FUNCTION_NAME`, `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID`.
+   - Configurar **Secrets**: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (e `AWS_SESSION_TOKEN` se for auth com token).
+   - (Opcional) **Variables**: `AWS_REGION`, `LAMBDA_FUNCTION_NAME`, `GATEWAY_PATH_PREFIX`; quando for usar: DynamoDB, S3, Cognito (conforme tabela acima).
 
 2. **AWS**
-   - Lambda já criada (nome igual a `LAMBDA_FUNCTION_NAME`).
-   - IAM User/Role das credenciais com permissões: `lambda:UpdateFunctionCode`, `lambda:GetFunction`, `lambda:GetFunctionConfiguration` (esta última necessária para o step que atualiza variáveis de ambiente do Lambda).
+   - Lambda já criada (nome igual a `LAMBDA_FUNCTION_NAME` ou o que for usado no deploy).
+   - IAM User/Role das credenciais com permissões: `lambda:UpdateFunctionCode`, `lambda:GetFunction`, `lambda:UpdateFunctionConfiguration`, `lambda:Wait*` (para deploy e atualização de env vars).
 
 3. **Deploy automático**
-   - **Push** ou **merge** na branch `main` → o workflow roda e faz deploy (e, se as Variables de Cognito estiverem setadas, atualiza as env vars do Lambda).
+   - **Push** ou **merge** na branch `main` → o workflow **Deploy Lambda Video Management** roda (build, test, publish, zip, deploy e atualização das env vars do Lambda).
 
 4. **Deploy manual**
-   - **Actions** → **Deploy Lambda Auth API** → **Run workflow** → escolher branch e, se quiser, preencher **aws_region** e **lambda_function_name**.
+   - **Actions** → **Deploy Lambda Video Management** → **Run workflow** → escolher a branch (nome do Lambda, região e gateway vêm das Variables).
 
 5. **Verificação**
    - Ver o run em **Actions** e o step **Verify deployment**.
@@ -121,7 +95,7 @@ Os valores podem ser os mesmos do `appsettings.Development.json` (para dev) ou o
 
 ---
 
-## 6. Referência rápida (tabela única)
+## 5. Referência rápida (tabela única)
 
 | Tipo | Nome | Obrigatório | Observação |
 |------|------|-------------|------------|
@@ -129,8 +103,13 @@ Os valores podem ser os mesmos do `appsettings.Development.json` (para dev) ou o
 | Secret | AWS_SECRET_ACCESS_KEY | Sim | Deploy |
 | Secret | AWS_SESSION_TOKEN | Sim (com token/STS) | Deploy com credenciais temporárias |
 | Variable | AWS_REGION | Não | Padrão: `us-east-1` |
-| Variable | LAMBDA_FUNCTION_NAME | Não | Padrão: `video-processing-engine-dev-auth` |
-| Variable | COGNITO_USER_POOL_ID | Não* | *Para injetar no Lambda; senão configurar no Lambda |
-| Variable | COGNITO_CLIENT_ID | Não* | *Para injetar no Lambda; senão configurar no Lambda |
+| Variable | LAMBDA_FUNCTION_NAME | Não | Padrão: `video-processing-engine-dev-video-management` |
+| Variable | GATEWAY_PATH_PREFIX | Não | Ex.: `/videos`; ver gateway-path-prefix.md |
+| Variable | DYNAMODB_TABLE_NAME | Não* | *Quando for usar DynamoDB |
+| Variable | S3_BUCKET_VIDEO | Não* | *Quando for usar S3 (vídeos) |
+| Variable | S3_BUCKET_FRAMES | Não* | *Quando for usar S3 (frames) |
+| Variable | S3_BUCKET_ZIP | Não* | *Quando for usar S3 (zip) |
+| Variable | COGNITO_USER_POOL_ID | Não* | *Quando for usar Cognito |
+| Variable | COGNITO_CLIENT_ID | Não* | *Quando for usar Cognito |
 
-Documentação detalhada do workflow e troubleshooting: [deploy-github-actions.md](./deploy-github-actions.md).
+Documentação detalhada do workflow e troubleshooting: [deploy-video-management-lambda.md](deploy-video-management-lambda.md).

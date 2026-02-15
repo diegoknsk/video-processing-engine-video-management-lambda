@@ -6,16 +6,6 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
-    inputs:
-      lambda_function_name:
-        description: 'Nome da função Lambda para deploy'
-        required: false
-      aws_region:
-        description: 'Região AWS'
-        required: false
-      gateway_path_prefix:
-        description: 'Prefixo de path do API Gateway (ex: /videos)'
-        required: false
 
 jobs:
   build-and-deploy:
@@ -58,12 +48,12 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-        aws-region: ${{ github.event.inputs.aws_region || vars.AWS_REGION || 'us-east-1' }}
+        aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
 
     - name: Deploy to Lambda
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
       run: |
-        FUNCTION_NAME=${{ github.event.inputs.lambda_function_name || vars.LAMBDA_FUNCTION_NAME || 'video-processing-engine-dev-video-management' }}
+        FUNCTION_NAME=${{ vars.LAMBDA_FUNCTION_NAME || 'video-processing-engine-dev-video-management' }}
         aws lambda update-function-code \
           --function-name $FUNCTION_NAME \
           --zip-file fileb://deployment-package.zip
@@ -71,15 +61,15 @@ jobs:
     - name: Wait for Lambda update
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
       run: |
-        FUNCTION_NAME=${{ github.event.inputs.lambda_function_name || vars.LAMBDA_FUNCTION_NAME || 'video-processing-engine-dev-video-management' }}
+        FUNCTION_NAME=${{ vars.LAMBDA_FUNCTION_NAME || 'video-processing-engine-dev-video-management' }}
         aws lambda wait function-updated --function-name $FUNCTION_NAME
 
     - name: Update Lambda configuration
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
       run: |
-        FUNCTION_NAME=${{ github.event.inputs.lambda_function_name || vars.LAMBDA_FUNCTION_NAME || 'video-processing-engine-dev-video-management' }}
-        REGION=${{ github.event.inputs.aws_region || vars.AWS_REGION || 'us-east-1' }}
-        GATEWAY_PREFIX=${{ github.event.inputs.gateway_path_prefix || vars.GATEWAY_PATH_PREFIX || '' }}
+        FUNCTION_NAME=${{ vars.LAMBDA_FUNCTION_NAME || 'video-processing-engine-dev-video-management' }}
+        REGION=${{ vars.AWS_REGION || 'us-east-1' }}
+        GATEWAY_PREFIX=${{ vars.GATEWAY_PATH_PREFIX || '' }}
         
         # Update Handler
         aws lambda update-function-configuration \
@@ -114,7 +104,7 @@ jobs:
     - name: Verify deployment
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
       run: |
-        FUNCTION_NAME=${{ github.event.inputs.lambda_function_name || vars.LAMBDA_FUNCTION_NAME || 'video-processing-engine-dev-video-management' }}
+        FUNCTION_NAME=${{ vars.LAMBDA_FUNCTION_NAME || 'video-processing-engine-dev-video-management' }}
         aws lambda get-function --function-name $FUNCTION_NAME --query 'Configuration.[FunctionName,LastModified,State,Handler]' --output table
 
     - name: Upload artifact
