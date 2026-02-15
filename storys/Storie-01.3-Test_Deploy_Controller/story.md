@@ -1,8 +1,8 @@
 # Storie-01.3: Test Deploy Controller (GitHub)
 
 ## Status
-- **Estado:** 🔄 Em desenvolvimento
-- **Data de Conclusão:** —
+- **Estado:** ✅ Concluído
+- **Data de Conclusão:** 2026-02-14
 
 ## Descrição
 Como desenvolvedor/DevOps, quero executar o deploy da Lambda Video Management via GitHub Actions (usando o workflow da Storie-07), configurando os secrets e variables necessários no repositório GitHub, para validar minimamente que o pipeline de deploy e o endpoint de health funcionam após o deploy.
@@ -33,17 +33,17 @@ Configurar no repositório GitHub os secrets de AWS (Access Key, Secret Key e, s
   - Session Token expirado (credenciais temporárias) exige renovação nos secrets
 
 ## Subtasks
-- [Subtask 01: Configurar GitHub Secrets (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN)](./subtask/Subtask-01-GitHub_Secrets_AWS.md)
-- [Subtask 02: Configurar GitHub Variables do workflow de deploy](./subtask/Subtask-02-GitHub_Variables_Deploy.md)
-- [Subtask 03: Executar workflow de deploy e validar conclusão](./subtask/Subtask-03-Executar_Workflow_Deploy.md)
-- [Subtask 04: Validar smoke test GET /health pós-deploy](./subtask/Subtask-04-Smoke_Test_Health_Pos_Deploy.md)
+- [x] Subtask 01: Configurar GitHub Secrets (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN)
+- [x] Subtask 02: Configurar GitHub Variables do workflow de deploy
+- [x] Subtask 03: Executar workflow de deploy e validar conclusão
+- [x] Subtask 04: Validar smoke test GET /health pós-deploy
 
 ## Critérios de Aceite da História
-- [ ] GitHub Secrets configurados: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY e, quando aplicável, AWS_SESSION_TOKEN (para credenciais temporárias)
-- [ ] GitHub Variables configuradas conforme exigido pelo workflow da Storie-07 (ex.: AWS_REGION, LAMBDA_FUNCTION_NAME, GATEWAY_PATH_PREFIX, GATEWAY_STAGE e demais env vars da Lambda)
-- [ ] Workflow de deploy executado manualmente (workflow_dispatch) ou por push na branch configurada, com todos os steps concluídos com sucesso
-- [ ] Smoke test mínimo: GET na URL do API Gateway (ex.: `https://.../default/videos/health`) retorna 200 OK e JSON com "status": "healthy"
-- [ ] Documentação ou checklist (em docs ou README) descreve quais secrets e variables são obrigatórios para o deploy via GitHub
+- [x] GitHub Secrets configurados: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY e, quando aplicável, AWS_SESSION_TOKEN (para credenciais temporárias)
+- [x] GitHub Variables configuradas conforme exigido pelo workflow da Storie-07 (ex.: AWS_REGION, LAMBDA_FUNCTION_NAME, GATEWAY_PATH_PREFIX, GATEWAY_STAGE e demais env vars da Lambda)
+- [x] Workflow de deploy executado manualmente (workflow_dispatch) ou por push na branch configurada, com todos os steps concluídos com sucesso
+- [x] Smoke test mínimo: GET na URL do API Gateway (ex.: `https://.../default/videos/health`) retorna 200 OK e JSON com "status": "healthy"
+- [x] Documentação ou checklist (em docs ou README) descreve quais secrets e variables são obrigatórios para o deploy via GitHub
 
 ## Rastreamento (dev tracking)
 - **Início:** —

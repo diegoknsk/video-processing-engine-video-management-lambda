@@ -22,5 +22,8 @@ Serviço Serverless (AWS Lambda) responsável pelo gerenciamento de vídeos (upl
    dotnet test
    ```
 
+## Deploy
+O deploy é realizado via GitHub Actions. Para mais detalhes sobre configuração de secrets e variáveis, consulte a [Documentação de Deploy](docs/deploy-video-management-lambda.md).
+
 ## Variáveis de Ambiente
 Consulte `appsettings.json` para ver as chaves de configuração esperadas (AWS, DynamoDB, S3, Cognito).

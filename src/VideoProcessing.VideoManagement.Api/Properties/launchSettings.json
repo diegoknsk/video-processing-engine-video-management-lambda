@@ -33,6 +33,15 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "Lambda Test Tool": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Users\\diego\\.dotnet\\tools\\dotnet-lambda-test-tool-10.0.exe",
+      "workingDirectory": "$(ProjectDir)",
+      "environmentVariables": {
+        "AWS_REGION": "us-east-1",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
     }
   }
 }
