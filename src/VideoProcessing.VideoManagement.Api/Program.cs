@@ -58,9 +58,8 @@ try
     // Map Controllers
     app.MapControllers();
 
-    // Root Redirect e /health (minimal API: rota explícita, evita 404 com PathBase no Lambda)
+    // Root Redirect (optional helpful default)
     app.MapGet("/", () => Results.Redirect("/health"));
-    app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
     app.Run();
 }
