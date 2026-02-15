@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using System;
 using Microsoft.AspNetCore.Http; // For Results
+using Amazon.Lambda.AspNetCoreServer.Hosting;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(new JsonFormatter())
@@ -27,7 +28,7 @@ try
         .Enrich.FromLogContext()
         .WriteTo.Console(new JsonFormatter()));
 
-    // AWS Lambda Hosting removed temporarily for diagnosis/compatibility on .NET 10
+    builder.Services.AddAWSLambdaHosting(LambdaEventSource.HttpApi);
 
     // Add Configuration
     builder.Configuration.AddEnvironmentVariables();
