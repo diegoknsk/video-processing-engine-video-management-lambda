@@ -29,6 +29,7 @@ O workflow envia estas variáveis para o Lambda no step **Update Lambda configur
 | **AWS_REGION** | Região AWS do Lambda | `us-east-1` |
 | **LAMBDA_FUNCTION_NAME** | Nome da função Lambda | `video-processing-engine-dev-video-management` |
 | **GATEWAY_PATH_PREFIX** | Prefixo de path do API Gateway (ex.: `/videos`). A aplicação remove esse prefixo do path. Deixe vazio se não usar prefixo. Ver [gateway-path-prefix.md](gateway-path-prefix.md). | — (vazio = path inalterado) |
+| **GATEWAY_STAGE** | Nome do stage do API Gateway quando a URL inclui o stage (ex.: `/dev/videos/health`). Defina com o valor do segmento na URL (ex.: `dev`). Necessário para o middleware encontrar a rota `/health`. Se usar stage `$default` sem segmento na URL, deixe vazio. | — (vazio = path inalterado) |
 | **DYNAMODB_TABLE_NAME** | Nome da tabela DynamoDB (injetado como `DynamoDB__TableName`) | — |
 | **S3_BUCKET_VIDEO** | Bucket S3 para vídeos (injetado como `S3__BucketVideo`) | — |
 | **S3_BUCKET_FRAMES** | Bucket S3 para frames (injetado como `S3__BucketFrames`) | — |
@@ -38,7 +39,7 @@ O workflow envia estas variáveis para o Lambda no step **Update Lambda configur
 
 - **DynamoDB / S3:** configure quando for usar persistência e storage (tabela e buckets já criados na AWS).
 - **Cognito:** configure quando a API precisar validar tokens do User Pool.
-- O workflow sempre envia: `AWS__Region`, `DynamoDB__Region`, `S3__Region`, `Cognito__Region` (usando a região do deploy), `GATEWAY_PATH_PREFIX` e `ASPNETCORE_ENVIRONMENT=Production`. As Variables acima preenchem os valores específicos (tabela, buckets, Cognito).
+- O workflow sempre envia: `AWS__Region`, `DynamoDB__Region`, `S3__Region`, `Cognito__Region` (usando a região do deploy), `GATEWAY_PATH_PREFIX`, `GATEWAY_STAGE` e `ASPNETCORE_ENVIRONMENT=Production`. As Variables acima preenchem os valores específicos (tabela, buckets, Cognito, gateway).
 
 ### 1.3 Execução manual
 
@@ -51,7 +52,7 @@ Ao rodar manualmente: **Actions** → **Deploy Lambda Video Management** → **R
 | Onde | O que setar |
 |------|-------------|
 | **GitHub Secrets** | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`; se usar token/STS: `AWS_SESSION_TOKEN` |
-| **GitHub Variables** | Opcional: `AWS_REGION`, `LAMBDA_FUNCTION_NAME`, `GATEWAY_PATH_PREFIX` (ex.: `/videos`). Quando for usar: `DYNAMODB_TABLE_NAME`, `S3_BUCKET_VIDEO`, `S3_BUCKET_FRAMES`, `S3_BUCKET_ZIP`, `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID` |
+| **GitHub Variables** | Opcional: `AWS_REGION`, `LAMBDA_FUNCTION_NAME`, `GATEWAY_PATH_PREFIX` (ex.: `/videos`), `GATEWAY_STAGE` (ex.: `dev` para URL `.../dev/videos/health`). Quando for usar: `DYNAMODB_TABLE_NAME`, `S3_BUCKET_VIDEO`, `S3_BUCKET_FRAMES`, `S3_BUCKET_ZIP`, `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID` |
 | **Lambda (AWS)** | Se não usar Variables no workflow: configurar manualmente no Lambda as env vars necessárias (DynamoDB, S3, Cognito, etc.) |
 
 O **Handler** da função Lambda é atualizado pelo workflow: `VideoProcessing.VideoManagement.Api`.
@@ -77,7 +78,7 @@ Quando a autenticação for com **credenciais temporárias** (ex.: AssumeRole, S
 
 1. **Repositório**
    - Configurar **Secrets**: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (e `AWS_SESSION_TOKEN` se for auth com token).
-   - (Opcional) **Variables**: `AWS_REGION`, `LAMBDA_FUNCTION_NAME`, `GATEWAY_PATH_PREFIX`; quando for usar: DynamoDB, S3, Cognito (conforme tabela acima).
+   - (Opcional) **Variables**: `AWS_REGION`, `LAMBDA_FUNCTION_NAME`, `GATEWAY_PATH_PREFIX`, `GATEWAY_STAGE`; quando for usar: DynamoDB, S3, Cognito (conforme tabela acima).
 
 2. **AWS**
    - Lambda já criada (nome igual a `LAMBDA_FUNCTION_NAME` ou o que for usado no deploy).
@@ -105,6 +106,7 @@ Quando a autenticação for com **credenciais temporárias** (ex.: AssumeRole, S
 | Variable | AWS_REGION | Não | Padrão: `us-east-1` |
 | Variable | LAMBDA_FUNCTION_NAME | Não | Padrão: `video-processing-engine-dev-video-management` |
 | Variable | GATEWAY_PATH_PREFIX | Não | Ex.: `/videos`; ver gateway-path-prefix.md |
+| Variable | GATEWAY_STAGE | Não | Ex.: `dev` quando a URL do gateway for `.../dev/videos/health` |
 | Variable | DYNAMODB_TABLE_NAME | Não* | *Quando for usar DynamoDB |
 | Variable | S3_BUCKET_VIDEO | Não* | *Quando for usar S3 (vídeos) |
 | Variable | S3_BUCKET_FRAMES | Não* | *Quando for usar S3 (frames) |

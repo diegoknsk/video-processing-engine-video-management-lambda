@@ -70,6 +70,7 @@ jobs:
         FUNCTION_NAME=${{ vars.LAMBDA_FUNCTION_NAME || 'video-processing-engine-dev-video-management' }}
         REGION=${{ vars.AWS_REGION || 'us-east-1' }}
         GATEWAY_PREFIX=${{ vars.GATEWAY_PATH_PREFIX || '' }}
+        GATEWAY_STAGE=${{ vars.GATEWAY_STAGE || '' }}
         
         # Update Handler
         aws lambda update-function-configuration \
@@ -98,6 +99,7 @@ jobs:
             Cognito__UserPoolId=${{ vars.COGNITO_USER_POOL_ID }},
             Cognito__ClientId=${{ vars.COGNITO_CLIENT_ID }},
             GATEWAY_PATH_PREFIX=$GATEWAY_PREFIX,
+            GATEWAY_STAGE=$GATEWAY_STAGE,
             ASPNETCORE_ENVIRONMENT=Production
           }"
 
