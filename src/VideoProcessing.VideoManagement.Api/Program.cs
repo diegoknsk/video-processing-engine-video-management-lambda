@@ -53,12 +53,14 @@ try
     
     app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
     app.UseMiddleware<GatewayPathBaseMiddleware>();
+    app.UseRouting();
 
     // Map Controllers
     app.MapControllers();
 
-    // Root Redirect (optional helpful default)
+    // Root Redirect e /health (minimal API: rota explícita, evita 404 com PathBase no Lambda)
     app.MapGet("/", () => Results.Redirect("/health"));
+    app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
     app.Run();
 }
