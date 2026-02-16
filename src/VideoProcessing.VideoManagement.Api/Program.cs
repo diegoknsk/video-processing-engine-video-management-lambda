@@ -1,17 +1,17 @@
 
 using VideoProcessing.VideoManagement.Infra.CrossCutting.Middleware;
-using VideoProcessing.VideoManagement.Infra.CrossCutting.DependencyInjection;
-using VideoProcessing.VideoManagement.Infra.Data.DependencyInjection;
 using Serilog;
 using Serilog.Formatting.Json;
-using VideoProcessing.VideoManagement.Application.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using System;
-using Microsoft.AspNetCore.Http; // For Results
+using Microsoft.AspNetCore.Http;
 using Amazon.Lambda.AspNetCoreServer.Hosting;
+using Scalar.AspNetCore;
+using VideoProcessing.VideoManagement.Api.Extensions;
+using VideoProcessing.VideoManagement.Api.DependencyInjection;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(new JsonFormatter())
@@ -33,10 +33,10 @@ try
     // Add Configuration
     builder.Configuration.AddEnvironmentVariables();
 
-    // Add Services (DI)
-    builder.Services.AddCrossCuttingConfiguration(builder.Configuration);
-    builder.Services.AddInfrastructureData();
-    builder.Services.AddApplicationServices();
+    // Add Services (DI — composition root na API)
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddVideoManagementServices(builder.Configuration);
+    builder.Services.AddOpenApiDocumentation();
     builder.Services.AddControllers();
 
     var app = builder.Build();
@@ -55,11 +55,21 @@ try
     app.UseMiddleware<GatewayPathBaseMiddleware>();
     app.UseRouting();
 
-    // Map Controllers
+    app.UseOpenApiDocumentation();
+
+    // Documentação interativa: acesse https://localhost:7163/scalar (ou /scalar na sua URL base)
+    app.MapScalarApiReference("/scalar", options => options
+        .WithTitle("Video Management API")
+        .AddDocument("v1", "Video Management API v1", "/swagger/v1/swagger.json"));
+
     app.MapControllers();
 
     // Root Redirect (optional helpful default)
     app.MapGet("/", () => Results.Redirect("/health"));
+
+    // Alias para documentação OpenAPI (story: GET /openapi/v1.json)
+    app.MapGet("/openapi/v1.json", (HttpContext ctx) =>
+        Results.Redirect(ctx.Request.PathBase + "/swagger/v1/swagger.json", permanent: false));
 
     app.Run();
 }

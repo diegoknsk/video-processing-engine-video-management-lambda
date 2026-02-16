@@ -57,6 +57,6 @@ Configurar Swashbuckle.AspNetCore (ou alternativa para .NET 10) para geração a
 - [ ] Documentação OpenAPI valida em validator.swagger.io (ou equivalente)
 
 ## Rastreamento (dev tracking)
-- **Início:** —
+- **Início:** 15/02/2026, às 18:03 (Brasília)
 - **Fim:** —
 - **Tempo total de desenvolvimento:** —
