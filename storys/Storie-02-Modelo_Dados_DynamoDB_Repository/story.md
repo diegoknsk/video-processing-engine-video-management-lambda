@@ -1,8 +1,8 @@
 # Storie-02: Modelo de Dados DynamoDB e Repository Pattern
 
 ## Status
-- **Estado:** 🔄 Em desenvolvimento
-- **Data de Conclusão:** —
+- **Estado:** ✅ Concluído
+- **Data de Conclusão:** 15/02/2026
 
 ## Descrição
 Como desenvolvedor backend, quero definir o modelo de dados single-table do DynamoDB para vídeos e implementar o Repository Pattern com operações CRUD idempotentes e condicionais, para garantir persistência escalável, consistente e preparada para múltiplos writers (orchestrator, processor, finalizer).
@@ -61,6 +61,6 @@ Definir e implementar a entidade `Video` do Domain com todos os campos obrigató
 - [ ] `dotnet build` e `dotnet test` passam sem erros
 
 ## Rastreamento (dev tracking)
-- **Início:** —
-- **Fim:** —
-- **Tempo total de desenvolvimento:** —
+- **Início:** 15/02/2026
+- **Fim:** 15/02/2026
+- **Tempo total de desenvolvimento:** 1h

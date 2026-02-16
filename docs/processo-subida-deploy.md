@@ -115,3 +115,7 @@ Quando a autenticação for com **credenciais temporárias** (ex.: AssumeRole, S
 | Variable | COGNITO_CLIENT_ID | Não* | *Quando for usar Cognito |
 
 Documentação detalhada do workflow e troubleshooting: [deploy-video-management-lambda.md](deploy-video-management-lambda.md).
+
+
+6. **Testes lambda**
+   
