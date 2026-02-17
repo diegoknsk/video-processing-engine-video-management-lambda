@@ -4,8 +4,9 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 namespace VideoProcessing.VideoManagement.Api.Filters;
 
 /// <summary>
-/// Preenche o Server do OpenAPI a partir do request (Scheme + Host + PathBase) ou de API_PUBLIC_BASE_URL,
-/// para que o "Try it" do Scalar use a URL correta (incluindo atrás do API Gateway).
+/// Preenche o Server do OpenAPI para o "Try it" do Scalar. Quando GATEWAY_STAGE/GATEWAY_PATH_PREFIX estão definidos,
+/// monta o path do server só a partir da configuração (evita duplicar stage); senão usa PathBase do request (local).
+/// API_PUBLIC_BASE_URL tem prioridade quando definida.
 /// </summary>
 public sealed class OpenApiServerFromRequestFilter : IDocumentFilter
 {
@@ -37,14 +38,24 @@ public sealed class OpenApiServerFromRequestFilter : IDocumentFilter
             var request = httpContext.Request;
             var scheme = request.Scheme;
             var host = request.Host.Value;
-            var pathBase = request.PathBase.Value ?? "";
-            var stage = _configuration["GATEWAY_STAGE"];
-            var pathBaseWithStage = string.IsNullOrWhiteSpace(stage)
-                ? pathBase
-                : $"/{stage.Trim()}{pathBase}";
-            var serverUrl = $"{scheme}://{host}{pathBaseWithStage}".TrimEnd('/');
+            var stage = _configuration["GATEWAY_STAGE"]?.Trim();
+            var pathPrefix = _configuration["GATEWAY_PATH_PREFIX"]?.Trim();
+            var hasGatewayConfig = !string.IsNullOrWhiteSpace(stage) || !string.IsNullOrWhiteSpace(pathPrefix);
+
+            var pathSegment = hasGatewayConfig
+                ? BuildServerPathFromConfig(stage, pathPrefix)
+                : (request.PathBase.Value ?? "");
+
+            var serverUrl = $"{scheme}://{host}{pathSegment}".TrimEnd('/');
             if (!string.IsNullOrEmpty(serverUrl) && !document.Servers.Any(s => s.Url == serverUrl))
                 document.Servers.Insert(0, new OpenApiServer { Url = serverUrl, Description = "Current request" });
         }
+    }
+
+    private static string BuildServerPathFromConfig(string? stage, string? pathPrefix)
+    {
+        var stagePart = string.IsNullOrWhiteSpace(stage) ? "" : $"/{stage!.Trim()}";
+        var prefixPart = string.IsNullOrWhiteSpace(pathPrefix) ? "" : pathPrefix!.Trim().StartsWith('/') ? pathPrefix.Trim() : $"/{pathPrefix.Trim()}";
+        return $"{stagePart}{prefixPart}";
     }
 }
