@@ -133,6 +133,14 @@ public class Video
         UpdatedAt = DateTime.UtcNow;
     }
     
+    public void SetDuration(double durationSec)
+    {
+        if (durationSec <= 0)
+            throw new ArgumentOutOfRangeException(nameof(durationSec), "DurationSec must be greater than 0.");
+        DurationSec = durationSec;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void SetS3Source(string bucket, string key)
     {
         S3BucketVideo = bucket;

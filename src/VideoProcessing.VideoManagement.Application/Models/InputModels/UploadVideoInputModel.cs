@@ -18,10 +18,10 @@ public record UploadVideoInputModel
     [Description("Tipo MIME do conteúdo (ex.: video/mp4)")]
     public required string ContentType { get; init; }
 
-    /// <summary>Tamanho do arquivo em bytes.</summary>
+    /// <summary>Tamanho do arquivo em KB (quilobytes).</summary>
     [Required]
-    [Description("Tamanho do arquivo em bytes")]
-    public long SizeBytes { get; init; }
+    [Description("Tamanho do arquivo em KB (quilobytes)")]
+    public long SizeKb { get; init; }
 
     /// <summary>Duração do vídeo em segundos (opcional).</summary>
     [Description("Duração do vídeo em segundos")]

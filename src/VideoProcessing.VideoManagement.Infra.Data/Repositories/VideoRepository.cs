@@ -177,7 +177,7 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
         var request = new QueryRequest
         {
             TableName = _tableName,
-            IndexName = "GSI_ClientRequestId",
+            IndexName = "GSI1",
             KeyConditionExpression = "gsi1pk = :pk AND gsi1sk = :sk",
             ExpressionAttributeValues = new Dictionary<string, AttributeValue>
             {

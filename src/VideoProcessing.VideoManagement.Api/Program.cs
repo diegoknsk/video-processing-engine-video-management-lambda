@@ -12,7 +12,6 @@ using Amazon.Lambda.AspNetCoreServer.Hosting;
 using Scalar.AspNetCore;
 using VideoProcessing.VideoManagement.Api.Extensions;
 using VideoProcessing.VideoManagement.Api.DependencyInjection;
-
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(new JsonFormatter())
     .CreateBootstrapLogger();
@@ -54,6 +53,8 @@ try
     app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
     app.UseMiddleware<GatewayPathBaseMiddleware>();
     app.UseRouting();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     app.UseOpenApiDocumentation();
 

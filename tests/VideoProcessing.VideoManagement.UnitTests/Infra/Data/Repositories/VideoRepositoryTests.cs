@@ -20,7 +20,7 @@ public class VideoRepositoryTests
     public VideoRepositoryTests()
     {
         _dynamoMock = new Mock<IAmazonDynamoDB>();
-        var options = Options.Create(new DynamoDbOptions("test-table", "us-east-1"));
+        var options = Options.Create(new DynamoDbOptions { TableName = "test-table", Region = "us-east-1" });
         _repository = new VideoRepository(_dynamoMock.Object, options);
     }
 

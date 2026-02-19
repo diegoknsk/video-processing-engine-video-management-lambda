@@ -47,7 +47,7 @@ public sealed class OpenApiExamplesAndErrorsFilter : IOperationFilter
             {
                 ["originalFileName"] = new OpenApiString("meu-video.mp4"),
                 ["contentType"] = new OpenApiString("video/mp4"),
-                ["sizeBytes"] = new OpenApiInteger(1024 * 1024 * 50),
+                ["sizeKb"] = new OpenApiLong(51200),
                 ["durationSec"] = new OpenApiDouble(120.5),
                 ["clientRequestId"] = new OpenApiString("req-abc-123")
             };
