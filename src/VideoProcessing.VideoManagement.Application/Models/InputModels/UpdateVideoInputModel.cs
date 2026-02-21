@@ -5,10 +5,14 @@ namespace VideoProcessing.VideoManagement.Application.Models.InputModels;
 
 /// <summary>
 /// Contrato de entrada para atualização parcial de um vídeo (status, progresso, erros, S3, etc.).
-/// Pelo menos uma propriedade deve ser informada.
+/// Pelo menos uma propriedade de atualização deve ser informada além de UserId.
 /// </summary>
 public record UpdateVideoInputModel
 {
+    /// <summary>Identificador do usuário dono do vídeo (obrigatório — caller interno conhece o userId).</summary>
+    [Description("Identificador do usuário dono do vídeo")]
+    public Guid UserId { get; init; }
+
     /// <summary>Status do processamento do vídeo.</summary>
     [Description("Status do processamento")]
     public VideoStatus? Status { get; init; }

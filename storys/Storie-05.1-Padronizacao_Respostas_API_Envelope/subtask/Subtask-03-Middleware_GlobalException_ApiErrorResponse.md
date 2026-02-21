@@ -21,8 +21,8 @@ Garantir que todas as exceções não tratadas sejam capturadas e convertidas em
 3. Teste unitário do mapeamento: dado um tipo de exceção, verificar tripla (statusCode, code, message) retornada.
 
 ## Critérios de Aceite da Subtask
-- [ ] Exceções não tratadas resultam em resposta JSON no formato ApiErrorResponse (success, error.code, error.message, timestamp).
-- [ ] Mapeamento cobre pelo menos 401, 400, 404 e 500; extensível para exceções de domínio/SDK.
-- [ ] Resposta usa Content-Type application/json e PropertyNamingPolicy.CamelCase.
-- [ ] Middleware registrado no pipeline antes de UseRouting (ou na mesma posição do handler atual).
-- [ ] Testes unitários para o mapeamento de exceções (mínimo 4 cenários).
+- [x] Exceções não tratadas resultam em resposta JSON no formato ApiErrorResponse (success, error.code, error.message, timestamp).
+- [x] Mapeamento cobre pelo menos 401, 400, 404 e 500; extensível para exceções de domínio/SDK.
+- [x] Resposta usa Content-Type application/json e PropertyNamingPolicy.CamelCase.
+- [x] Middleware registrado no pipeline antes de UseRouting (ou na mesma posição do handler atual).
+- [x] Testes unitários para o mapeamento de exceções (mínimo 4 cenários).

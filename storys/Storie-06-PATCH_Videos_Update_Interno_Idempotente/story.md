@@ -52,6 +52,6 @@ Implementar o action `UpdateVideo` já declarado como stub em `VideosController`
 - [ ] `dotnet test` passa sem erros após a implementação
 
 ## Rastreamento (dev tracking)
-- **Início:** —
+- **Início:** 21/02/2026, às 17:58 (Brasília)
 - **Fim:** —
 - **Tempo total de desenvolvimento:** —

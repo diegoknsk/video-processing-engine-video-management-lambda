@@ -17,7 +17,7 @@ Implementar um `IActionFilter` que, após a execução da action, intercepte res
 3. Verificar que respostas 400/404/500 não são alteradas pelo filtro.
 
 ## Critérios de Aceite da Subtask
-- [ ] `ApiResponseFilter` implementa `IActionFilter` e encapsula `OkObjectResult` e `ObjectResult` (200/201) em `ApiResponse<object>`.
-- [ ] Controllers não precisam mudar assinatura; retornam `Ok(...)` ou `CreatedAtAction(...)` como hoje.
-- [ ] Resposta serializada contém `success`, `data` e `timestamp` em camelCase quando aplicável.
-- [ ] Outros resultados (ex.: NotFound, BadRequest) não são modificados.
+- [x] `ApiResponseFilter` implementa `IActionFilter` e encapsula `OkObjectResult` e `ObjectResult` (200/201) em `ApiResponse<object>`.
+- [x] Controllers não precisam mudar assinatura; retornam `Ok(...)` ou `CreatedAtAction(...)` como hoje.
+- [x] Resposta serializada contém `success`, `data` e `timestamp` em camelCase quando aplicável.
+- [x] Outros resultados (ex.: NotFound, BadRequest) não são modificados.

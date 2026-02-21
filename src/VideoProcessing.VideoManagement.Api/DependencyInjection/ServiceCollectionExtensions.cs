@@ -12,6 +12,7 @@ using FluentValidation;
 using VideoProcessing.VideoManagement.Application.Models.InputModels;
 using VideoProcessing.VideoManagement.Application.UseCases.GetVideoById;
 using VideoProcessing.VideoManagement.Application.UseCases.ListVideos;
+using VideoProcessing.VideoManagement.Application.UseCases.UpdateVideo;
 using VideoProcessing.VideoManagement.Application.UseCases.UploadVideo;
 using VideoProcessing.VideoManagement.Application.Validators;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -69,11 +70,13 @@ public static class ServiceCollectionExtensions
 
         // Validators
         services.AddScoped<IValidator<UploadVideoInputModel>, UploadVideoInputModelValidator>();
+        services.AddScoped<IValidator<UpdateVideoInputModel>, UpdateVideoInputModelValidator>();
         
         // Application: UseCases
         services.AddScoped<IUploadVideoUseCase, UploadVideoUseCase>();
         services.AddScoped<IListVideosUseCase, ListVideosUseCase>();
         services.AddScoped<IGetVideoByIdUseCase, GetVideoByIdUseCase>();
+        services.AddScoped<IUpdateVideoUseCase, UpdateVideoUseCase>();
 
         return services;
     }

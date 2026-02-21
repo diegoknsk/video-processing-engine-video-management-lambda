@@ -76,6 +76,45 @@ public class Video
 
     internal static Video FromPersistence(VideoRehydrationData d) => new(d);
 
+    /// <summary>
+    /// Cria uma nova instância de Video com os campos do patch aplicados (apenas valores não nulos sobrescrevem).
+    /// UpdatedAt é definido como UtcNow.
+    /// </summary>
+    public static Video FromMerge(Video existing, VideoUpdateValues patch)
+    {
+        var updatedAt = DateTime.UtcNow;
+        var data = new VideoRehydrationData(
+            VideoId: existing.VideoId,
+            UserId: existing.UserId,
+            OriginalFileName: existing.OriginalFileName,
+            ContentType: existing.ContentType,
+            SizeBytes: existing.SizeBytes,
+            DurationSec: existing.DurationSec,
+            Status: patch.Status ?? existing.Status,
+            ProcessingMode: existing.ProcessingMode,
+            ProgressPercent: patch.ProgressPercent ?? existing.ProgressPercent,
+            S3BucketVideo: existing.S3BucketVideo,
+            S3KeyVideo: existing.S3KeyVideo,
+            S3BucketZip: patch.S3BucketZip ?? existing.S3BucketZip,
+            S3KeyZip: patch.S3KeyZip ?? existing.S3KeyZip,
+            S3BucketFrames: patch.S3BucketFrames ?? existing.S3BucketFrames,
+            FramesPrefix: patch.FramesPrefix ?? existing.FramesPrefix,
+            StepExecutionArn: patch.StepExecutionArn ?? existing.StepExecutionArn,
+            ErrorMessage: patch.ErrorMessage ?? existing.ErrorMessage,
+            ErrorCode: patch.ErrorCode ?? existing.ErrorCode,
+            ClientRequestId: existing.ClientRequestId,
+            ChunkCount: existing.ChunkCount,
+            ChunkDurationSec: existing.ChunkDurationSec,
+            UploadIssuedAt: existing.UploadIssuedAt,
+            UploadUrlExpiresAt: existing.UploadUrlExpiresAt,
+            FramesProcessed: existing.FramesProcessed,
+            FinalizedAt: existing.FinalizedAt,
+            CreatedAt: existing.CreatedAt,
+            UpdatedAt: updatedAt,
+            Version: existing.Version);
+        return FromPersistence(data);
+    }
+
     public Video(Guid userId, string originalFileName, string contentType, long sizeBytes, string? clientRequestId = null)
     {
         if (string.IsNullOrWhiteSpace(originalFileName))

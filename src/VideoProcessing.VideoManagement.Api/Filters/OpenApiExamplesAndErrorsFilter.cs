@@ -17,9 +17,14 @@ public sealed class OpenApiExamplesAndErrorsFilter : IOperationFilter
         var relativePath = context.ApiDescription.RelativePath ?? "";
 
         if (method == "POST" && relativePath.Equals("videos", StringComparison.OrdinalIgnoreCase))
+        {
+            AddUploadVideoDocumentation(operation);
             AddUploadVideoExamples(operation, context);
+        }
         else if (method == "GET" && relativePath.StartsWith("videos/", StringComparison.OrdinalIgnoreCase) && relativePath.Length > 7)
             AddGetVideoResponseExample(operation);
+        else if (method == "PATCH" && relativePath.StartsWith("videos/", StringComparison.OrdinalIgnoreCase))
+            operation.Summary = "Internal route for orchestrator/processor/finalizer. Atualização parcial (status, progresso, erros, S3).";
     }
 
     private static void SetErrorResponseDescriptions(OpenApiOperation operation)
@@ -39,6 +44,14 @@ public sealed class OpenApiExamplesAndErrorsFilter : IOperationFilter
         }
     }
 
+    private static void AddUploadVideoDocumentation(OpenApiOperation operation)
+    {
+        operation.Description =
+            "Registra um novo vídeo e retorna URL pré-assinada para upload no S3. **ClientRequestId:** opcional. " +
+            "Se informado, o mesmo valor para o mesmo usuário retorna o mesmo videoId (idempotência para retries). " +
+            "Para **múltiplos vídeos**, envie um UUID diferente por arquivo ou omita o campo; não use valor fixo (ex.: userId) em todos os POSTs.";
+    }
+
     private static void AddUploadVideoExamples(OpenApiOperation operation, OperationFilterContext context)
     {
         if (operation.RequestBody?.Content.TryGetValue("application/json", out var requestMedia) == true)
@@ -49,7 +62,7 @@ public sealed class OpenApiExamplesAndErrorsFilter : IOperationFilter
                 ["contentType"] = new OpenApiString("video/mp4"),
                 ["sizeKb"] = new OpenApiLong(51200),
                 ["durationSec"] = new OpenApiDouble(120.5),
-                ["clientRequestId"] = new OpenApiString("req-abc-123")
+                ["clientRequestId"] = new OpenApiString("a1b2c3d4-e5f6-4789-a012-3456789abcde")
             };
         }
 

@@ -24,12 +24,11 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
     
-    // Add Serilog
+    // Add Serilog (sink e níveis definidos em appsettings; um único Console/JSON para Lambda/CloudWatch)
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .WriteTo.Console(new JsonFormatter()));
+        .Enrich.FromLogContext());
 
     builder.Services.AddAWSLambdaHosting(LambdaEventSource.HttpApi);
 

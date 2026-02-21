@@ -22,7 +22,7 @@ Garantir cobertura de testes unitários para o filtro de resposta (ApiResponseFi
 3. Opcional: verificar relatório de cobertura para ApiResponseFilter e lógica de MapException.
 
 ## Critérios de Aceite da Subtask
-- [ ] Existem testes para ApiResponseFilter: OkObjectResult e ObjectResult 200/201 encapsulados; outros resultados não alterados.
-- [ ] Existem testes para o mapeamento de exceção: pelo menos 401, 400, 404 e 500.
-- [ ] `dotnet test` passa sem erros.
-- [ ] Cobertura ≥ 80% para as classes de padronização (filtro e mapeamento), quando mensurável.
+- [x] Existem testes para ApiResponseFilter: OkObjectResult e ObjectResult 200/201 encapsulados; outros resultados não alterados.
+- [x] Existem testes para o mapeamento de exceção: pelo menos 401, 400, 404 e 500.
+- [x] `dotnet test` passa sem erros.
+- [x] Cobertura ≥ 80% para as classes de padronização (filtro e mapeamento), quando mensurável.

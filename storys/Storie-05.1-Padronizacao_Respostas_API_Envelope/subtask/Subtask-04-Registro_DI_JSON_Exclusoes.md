@@ -20,7 +20,7 @@ Registrar o filtro de resposta nos controllers, garantir opções de JSON com ca
 3. Verificar que propriedades nulas (se aplicável) são omitidas quando UsingWhenWritingNull.
 
 ## Critérios de Aceite da Subtask
-- [ ] `ApiResponseFilter` registrado globalmente em `AddControllers(options => options.Filters.Add<ApiResponseFilter>())`.
-- [ ] JSON da API usa `PropertyNamingPolicy.CamelCase`; contrato exposto como success, data, error, timestamp, code, message.
-- [ ] Endpoint de health excluído do envelope (resposta sem encapsulamento ou conforme necessidade do projeto).
-- [ ] Pipeline mantém middleware de exceção na ordem correta; `dotnet run` e chamadas manuais passam.
+- [x] `ApiResponseFilter` registrado globalmente em `AddControllers(options => options.Filters.Add<ApiResponseFilter>())`.
+- [x] JSON da API usa `PropertyNamingPolicy.CamelCase`; contrato exposto como success, data, error, timestamp, code, message.
+- [x] Endpoint de health excluído do envelope (resposta sem encapsulamento ou conforme necessidade do projeto).
+- [x] Pipeline mantém middleware de exceção na ordem correta; `dotnet run` e chamadas manuais passam.

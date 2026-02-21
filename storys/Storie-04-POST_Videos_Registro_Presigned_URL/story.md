@@ -38,6 +38,11 @@ Implementar endpoint POST /videos que recebe UploadVideoInputModel, valida input
   - Pre-signed URL TTL curto (15 min padrão) pode causar timeout em uploads grandes; documentar limites
   - Validação de contentType: whitelist (video/mp4, video/quicktime, etc.); documentar tipos aceitos
 
+## Uso do clientRequestId (múltiplos vídeos por usuário)
+- **Idempotência:** Quando informado, o backend trata requisições com o **mesmo** `clientRequestId` para o mesmo usuário como a **mesma** operação: retorna o mesmo `videoId` e uma nova presigned URL (sem criar outro vídeo). Serve para **retries** do mesmo upload (rede/timeout).
+- **Novo vídeo por upload:** Para cada **novo** arquivo/vídeo o cliente deve enviar um **ClientRequestId diferente** (ex.: novo UUID por arquivo) ou **omitir** o campo. Se o cliente enviar sempre o mesmo valor (ex.: o próprio `userId`) em todos os POSTs, apenas o primeiro vídeo será criado; as demais chamadas serão tratadas como idempotência e devolverão o mesmo `videoId`.
+- **Resumo:** Um `clientRequestId` = um vídeo (por usuário). Múltiplos vídeos = múltiplos `clientRequestId` distintos (ou campo omitido para cada novo upload).
+
 ## Subtasks
 - [Subtask 01: Criar validator de UploadVideoInputModel (FluentValidation)](./subtask/Subtask-01-Validator_UploadVideoInputModel.md)
 - [Subtask 02: Implementar S3PresignedUrlService (geração de URL de PUT)](./subtask/Subtask-02-S3PresignedUrlService_Presigned_URL.md)

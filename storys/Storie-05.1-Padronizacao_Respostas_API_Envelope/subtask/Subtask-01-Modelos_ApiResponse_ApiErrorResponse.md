@@ -20,7 +20,7 @@ Criar os modelos de contrato para respostas padronizadas da API: `ApiResponse<T>
 3. Serializar com camelCase e validar JSON gerado (success, data/error, timestamp).
 
 ## Critérios de Aceite da Subtask
-- [ ] `ApiResponse<T>` existe com `Success`, `Data`, `Timestamp` e `CreateSuccess(T data)`.
-- [ ] `ApiErrorResponse` e `ErrorDetail` existem; `ApiErrorResponse.Create(code, message)` preenche `Error.Code` e `Error.Message`.
-- [ ] Propriedades usam `init` onde apropriado; timestamp em UTC.
-- [ ] Sem dependências externas além do BCL.
+- [x] `ApiResponse<T>` existe com `Success`, `Data`, `Timestamp` e `CreateSuccess(T data)`.
+- [x] `ApiErrorResponse` e `ErrorDetail` existem; `ApiErrorResponse.Create(code, message)` preenche `Error.Code` e `Error.Message`.
+- [x] Propriedades usam `init` onde apropriado; timestamp em UTC.
+- [x] Sem dependências externas além do BCL.

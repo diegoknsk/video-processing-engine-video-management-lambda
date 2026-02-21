@@ -6,7 +6,10 @@ using VideoProcessing.VideoManagement.Application.Models.InputModels;
 using VideoProcessing.VideoManagement.Application.Models.ResponseModels;
 using VideoProcessing.VideoManagement.Application.UseCases.GetVideoById;
 using VideoProcessing.VideoManagement.Application.UseCases.ListVideos;
+using VideoProcessing.VideoManagement.Application.UseCases.UpdateVideo;
 using VideoProcessing.VideoManagement.Application.UseCases.UploadVideo;
+using VideoProcessing.VideoManagement.Api.Models;
+using VideoProcessing.VideoManagement.Domain.Exceptions;
 
 namespace VideoProcessing.VideoManagement.Api.Controllers;
 
@@ -20,7 +23,9 @@ namespace VideoProcessing.VideoManagement.Api.Controllers;
 public class VideosController(
     IUploadVideoUseCase uploadVideoUseCase,
     IListVideosUseCase listVideosUseCase,
-    IGetVideoByIdUseCase getVideoByIdUseCase) : ControllerBase
+    IGetVideoByIdUseCase getVideoByIdUseCase,
+    IUpdateVideoUseCase updateVideoUseCase,
+    IValidator<UpdateVideoInputModel> updateVideoValidator) : ControllerBase
 {
     /// <summary>
     /// Registra um novo vídeo e retorna URL presigned para upload no S3.
@@ -103,17 +108,33 @@ public class VideosController(
     }
 
     /// <summary>
-    /// Atualiza parcialmente um vídeo (status, progresso, erros, S3). Idempotente por clientRequestId.
+    /// Atualiza parcialmente um vídeo (status, progresso, erros, S3). Idempotente.
+    /// Internal route for orchestrator/processor/finalizer — acessível sem JWT via [AllowAnonymous].
     /// </summary>
+    [AllowAnonymous]
     [HttpPatch("{id:guid}")]
     [ProducesResponseType(typeof(VideoResponseModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public IActionResult UpdateVideo(Guid id, [FromBody] UpdateVideoInputModel input)
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateVideo(Guid id, [FromBody] UpdateVideoInputModel input, CancellationToken cancellationToken)
     {
-        return StatusCode(StatusCodes.Status501NotImplemented, "Not implemented yet (Story 06).");
+        var validation = await updateVideoValidator.ValidateAsync(input, cancellationToken);
+        if (!validation.IsValid)
+            return BadRequest(ApiErrorResponse.Create("ValidationFailed", string.Join("; ", validation.Errors.Select(e => e.ErrorMessage))));
+
+        try
+        {
+            var response = await updateVideoUseCase.ExecuteAsync(id, input, cancellationToken);
+            if (response is null)
+                return NotFound(ApiErrorResponse.Create("NotFound", "Vídeo não encontrado."));
+
+            return Ok(response);
+        }
+        catch (VideoUpdateConflictException ex)
+        {
+            return Conflict(ApiErrorResponse.Create("UpdateConflict", ex.Message));
+        }
     }
 }
