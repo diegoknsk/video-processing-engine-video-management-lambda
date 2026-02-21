@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using FluentAssertions;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -8,6 +9,7 @@ using VideoProcessing.VideoManagement.Application.Models.InputModels;
 using VideoProcessing.VideoManagement.Application.Models.ResponseModels;
 using VideoProcessing.VideoManagement.Application.UseCases.GetVideoById;
 using VideoProcessing.VideoManagement.Application.UseCases.ListVideos;
+using VideoProcessing.VideoManagement.Application.UseCases.UpdateVideo;
 using VideoProcessing.VideoManagement.Application.UseCases.UploadVideo;
 using Xunit;
 
@@ -18,6 +20,8 @@ public class VideosControllerAuthTests
     private readonly Mock<IUploadVideoUseCase> _uploadUseCaseMock;
     private readonly Mock<IListVideosUseCase> _listUseCaseMock;
     private readonly Mock<IGetVideoByIdUseCase> _getByIdUseCaseMock;
+    private readonly Mock<IUpdateVideoUseCase> _updateVideoUseCaseMock;
+    private readonly Mock<IValidator<UpdateVideoInputModel>> _updateVideoValidatorMock;
     private readonly VideosController _controller;
 
     public VideosControllerAuthTests()
@@ -25,7 +29,14 @@ public class VideosControllerAuthTests
         _uploadUseCaseMock = new Mock<IUploadVideoUseCase>();
         _listUseCaseMock = new Mock<IListVideosUseCase>();
         _getByIdUseCaseMock = new Mock<IGetVideoByIdUseCase>();
-        _controller = new VideosController(_uploadUseCaseMock.Object, _listUseCaseMock.Object, _getByIdUseCaseMock.Object);
+        _updateVideoUseCaseMock = new Mock<IUpdateVideoUseCase>();
+        _updateVideoValidatorMock = new Mock<IValidator<UpdateVideoInputModel>>();
+        _controller = new VideosController(
+            _uploadUseCaseMock.Object,
+            _listUseCaseMock.Object,
+            _getByIdUseCaseMock.Object,
+            _updateVideoUseCaseMock.Object,
+            _updateVideoValidatorMock.Object);
     }
 
     private static void SetUser(VideosController controller, ClaimsPrincipal? user)
