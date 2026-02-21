@@ -24,6 +24,7 @@ Executar o deploy (workflow da Storie-07), construir a URL pública do smoke tes
 - **Dependências:**
   - Storie-07 concluída (workflow de deploy e Handler/env vars)
   - Storie-01.2 concluída (GET /health e GatewayPathBaseMiddleware; URL documentada)
+  - **Storie-05.1** concluída (padronização de respostas; GET /health permanece **excluído** do envelope, então o corpo do health segue `{ "status": "healthy", "timestamp": "..." }` sem envelope)
   - Lambda deployada; API Gateway com rota para a Lambda; variáveis GATEWAY_PATH_PREFIX e GATEWAY_STAGE configuradas na Lambda
 - **Riscos:** URL incorreta (stage ou prefix errado) causa 404; documentar fórmula da URL claramente
 
@@ -35,7 +36,7 @@ Executar o deploy (workflow da Storie-07), construir a URL pública do smoke tes
 ## Critérios de Aceite da História
 - [ ] Deploy executado via workflow (Storie-07); smoke test executado após deploy
 - [ ] URL do smoke test montada corretamente: `{API_GATEWAY_BASE_URL}/{stage?}/{path_prefix}/health` (stage omitido se $default)
-- [ ] Smoke test (curl ou Invoke-WebRequest) para essa URL retorna 200 OK e JSON `{ "status": "healthy", "timestamp": "..." }`
+- [ ] Smoke test (curl ou Invoke-WebRequest) para essa URL retorna 200 OK e JSON `{ "status": "healthy", "timestamp": "..." }` (GET /health **não** é encapsulado pelo envelope da Storie-05.1)
 - [ ] Step "Smoke test" no workflow (ou job separado) chama a URL pública e valida status 200 e corpo JSON; falha do smoke test falha o job
 - [ ] Documentação descreve como obter a URL do API Gateway e montar a URL do smoke test; exemplos para diferentes combinações de stage/prefix
 - [ ] Logs do CloudWatch revisados após deploy; validam que aplicação iniciou sem erros e respondeu ao request GET /health

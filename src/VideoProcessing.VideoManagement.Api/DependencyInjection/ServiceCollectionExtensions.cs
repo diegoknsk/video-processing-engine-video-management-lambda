@@ -10,6 +10,8 @@ using VideoProcessing.VideoManagement.Infra.Data.Repositories;
 using VideoProcessing.VideoManagement.Infra.Data.Services;
 using FluentValidation;
 using VideoProcessing.VideoManagement.Application.Models.InputModels;
+using VideoProcessing.VideoManagement.Application.UseCases.GetVideoById;
+using VideoProcessing.VideoManagement.Application.UseCases.ListVideos;
 using VideoProcessing.VideoManagement.Application.UseCases.UploadVideo;
 using VideoProcessing.VideoManagement.Application.Validators;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -70,6 +72,8 @@ public static class ServiceCollectionExtensions
         
         // Application: UseCases
         services.AddScoped<IUploadVideoUseCase, UploadVideoUseCase>();
+        services.AddScoped<IListVideosUseCase, ListVideosUseCase>();
+        services.AddScoped<IGetVideoByIdUseCase, GetVideoByIdUseCase>();
 
         return services;
     }

@@ -23,7 +23,7 @@ Atualmente o repositório usa o índice genérico `GSI1` (com chaves `gsi1pk`/`g
 - Pacotes/Dependências: N/A (alteração de infra)
 
 ## Dependências e Riscos (para estimativa)
-- Dependências: projeto de infra (IaC separado); requer deploy de infra antes de atualizar o código.
+- Dependências: projeto de infra (IaC separado); requer deploy de infra antes de atualizar o código. Endpoints da API que eventualmente usem este repositório assumem o **padrão de resposta da Storie-05.1** (envelope success/data/error/timestamp).
 - Riscos: adição de GSI em tabela existente pode levar minutos (backfill); monitorar status `ACTIVE` antes de deploy do serviço.
 
 ## Subtasks

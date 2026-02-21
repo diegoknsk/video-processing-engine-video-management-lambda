@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using VideoProcessing.VideoManagement.Application.Models;
 using VideoProcessing.VideoManagement.Application.Models.InputModels;
 using VideoProcessing.VideoManagement.Application.Models.ResponseModels;
+using VideoProcessing.VideoManagement.Application.UseCases.GetVideoById;
+using VideoProcessing.VideoManagement.Application.UseCases.ListVideos;
 using VideoProcessing.VideoManagement.Application.UseCases.UploadVideo;
 
 namespace VideoProcessing.VideoManagement.Api.Controllers;
@@ -15,7 +17,10 @@ namespace VideoProcessing.VideoManagement.Api.Controllers;
 [Route("videos")]
 [Produces("application/json")]
 [Authorize]
-public class VideosController(IUploadVideoUseCase uploadVideoUseCase) : ControllerBase
+public class VideosController(
+    IUploadVideoUseCase uploadVideoUseCase,
+    IListVideosUseCase listVideosUseCase,
+    IGetVideoByIdUseCase getVideoByIdUseCase) : ControllerBase
 {
     /// <summary>
     /// Registra um novo vídeo e retorna URL presigned para upload no S3.
@@ -56,28 +61,45 @@ public class VideosController(IUploadVideoUseCase uploadVideoUseCase) : Controll
     }
 
     /// <summary>
-    /// Lista vídeos do usuário autenticado com paginação.
+    /// Lista vídeos do usuário autenticado com paginação cursor-based.
+    /// Query params: limit (padrão 50, máx 100), nextToken (opcional).
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(VideoListResponseModel), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public IActionResult ListVideos([FromQuery] int? pageSize, [FromQuery] string? nextToken)
+    public async Task<IActionResult> ListVideos(
+        [FromQuery] int? limit,
+        [FromQuery] string? nextToken,
+        CancellationToken cancellationToken)
     {
-        return StatusCode(StatusCodes.Status501NotImplemented, "Not implemented yet (Story 05).");
+        var sub = User.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(sub) || !Guid.TryParse(sub, out var userId))
+            return Unauthorized();
+
+        var response = await listVideosUseCase.ExecuteAsync(userId.ToString(), limit ?? 50, nextToken, cancellationToken);
+        return Ok(response);
     }
 
     /// <summary>
-    /// Obtém um vídeo pelo identificador.
+    /// Obtém um vídeo pelo identificador. Retorna 404 se não encontrado ou não pertence ao usuário.
     /// </summary>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(VideoResponseModel), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public IActionResult GetVideo(Guid id)
+    public async Task<IActionResult> GetVideo(Guid id, CancellationToken cancellationToken)
     {
-        return StatusCode(StatusCodes.Status501NotImplemented, "Not implemented yet (Story 05).");
+        var sub = User.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(sub) || !Guid.TryParse(sub, out var userId))
+            return Unauthorized();
+
+        var response = await getVideoByIdUseCase.ExecuteAsync(userId.ToString(), id.ToString(), cancellationToken);
+        if (response is null)
+            return NotFound();
+
+        return Ok(response);
     }
 
     /// <summary>

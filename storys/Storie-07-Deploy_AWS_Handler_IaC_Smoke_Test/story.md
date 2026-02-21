@@ -24,7 +24,7 @@ Criar workflow de deploy no GitHub Actions (build → test → publish → zip �
 
 ## Dependências e Riscos (para estimativa)
 - **Dependências:**
-  - Stories 01, 01.2 e 02–06 concluídas (aplicação funcional localmente; GET /health e gateway configurados)
+  - Stories 01, 01.2, 02–05, **05.1** (padronização de respostas) e 06 concluídas (aplicação funcional localmente; GET /health e gateway configurados; respostas no envelope padrão)
   - Lambda function provisionada no AWS (via IaC; nome esperado: video-processing-engine-dev-video-management)
   - API Gateway HTTP API criado e integrado com a Lambda (via IaC)
   - DynamoDB table, S3 buckets, Cognito User Pool provisionados (via IaC)
