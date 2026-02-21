@@ -11,10 +11,7 @@ public class DynamoDbOptionsTests
     public void Validation_ShouldPass_WhenAllPropertiesAreSet()
     {
         // Arrange
-        var options = new DynamoDbOptions(
-            TableName: "videos-table",
-            Region: "us-east-1"
-        );
+        var options = new DynamoDbOptions { TableName = "videos-table", Region = "us-east-1" };
 
         // Act
         var context = new ValidationContext(options);
@@ -30,10 +27,7 @@ public class DynamoDbOptionsTests
     public void Validation_ShouldFail_WhenTableNameIsEmpty()
     {
         // Arrange
-        var options = new DynamoDbOptions(
-            TableName: null!, // Simulating null binding
-            Region: "us-east-1"
-        );
+        var options = new DynamoDbOptions { TableName = null!, Region = "us-east-1" };
 
         // Act
         var context = new ValidationContext(options);

@@ -13,15 +13,23 @@ public sealed class BearerAuthSecurityOperationFilter : IOperationFilter
 
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
-        var hasAllowAnonymous = context.MethodInfo.GetCustomAttributes(true)
-            .OfType<Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute>()
-            .Any();
+        var hasAllowAnonymous =
+            context.MethodInfo.GetCustomAttributes(true)
+                .OfType<Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute>()
+                .Any()
+            || (context.MethodInfo.DeclaringType?.GetCustomAttributes(true)
+                .OfType<Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute>()
+                .Any() ?? false);
         if (hasAllowAnonymous)
             return;
 
-        var hasAuthorize = context.MethodInfo.GetCustomAttributes(true)
-            .OfType<Microsoft.AspNetCore.Authorization.AuthorizeAttribute>()
-            .Any();
+        var hasAuthorize =
+            context.MethodInfo.GetCustomAttributes(true)
+                .OfType<Microsoft.AspNetCore.Authorization.AuthorizeAttribute>()
+                .Any()
+            || (context.MethodInfo.DeclaringType?.GetCustomAttributes(true)
+                .OfType<Microsoft.AspNetCore.Authorization.AuthorizeAttribute>()
+                .Any() ?? false);
         if (!hasAuthorize)
             return;
 

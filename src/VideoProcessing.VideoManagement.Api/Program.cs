@@ -1,6 +1,10 @@
-
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using VideoProcessing.VideoManagement.Infra.CrossCutting.Middleware;
 using Serilog;
+using VideoProcessing.VideoManagement.Api.Filters;
+using VideoProcessing.VideoManagement.Api.Middleware;
 using Serilog.Formatting.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +16,6 @@ using Amazon.Lambda.AspNetCoreServer.Hosting;
 using Scalar.AspNetCore;
 using VideoProcessing.VideoManagement.Api.Extensions;
 using VideoProcessing.VideoManagement.Api.DependencyInjection;
-
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(new JsonFormatter())
     .CreateBootstrapLogger();
@@ -21,12 +24,11 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
     
-    // Add Serilog
+    // Add Serilog (sink e níveis definidos em appsettings; um único Console/JSON para Lambda/CloudWatch)
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .WriteTo.Console(new JsonFormatter()));
+        .Enrich.FromLogContext());
 
     builder.Services.AddAWSLambdaHosting(LambdaEventSource.HttpApi);
 
@@ -37,7 +39,12 @@ try
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddVideoManagementServices(builder.Configuration);
     builder.Services.AddOpenApiDocumentation();
-    builder.Services.AddControllers();
+    builder.Services.AddControllers(options => options.Filters.Add<ApiResponseFilter>())
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        });
 
     var app = builder.Build();
 
@@ -51,9 +58,11 @@ try
         };
     });
     
-    app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+    app.UseMiddleware<GlobalExceptionMiddleware>();
     app.UseMiddleware<GatewayPathBaseMiddleware>();
     app.UseRouting();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     app.UseOpenApiDocumentation();
 

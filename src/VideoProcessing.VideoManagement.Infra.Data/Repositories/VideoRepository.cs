@@ -104,7 +104,7 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
         // Condições: ownership (pk), progressPercent monotônico, status transitions (não voltar de final para Processing)
         var newStatus = video.Status.ToString();
         var condition = "attribute_exists(pk) AND pk = :pk AND (attribute_not_exists(progressPercent) OR progressPercent <= :newProgress) " +
-            "AND (attribute_not_exists(#status) OR #status NOT IN (:completed, :failed, :cancelled) OR :newStatus IN (:completed, :failed, :cancelled))";
+            "AND (attribute_not_exists(#status) OR NOT (#status IN (:completed, :failed, :cancelled)) OR :newStatus IN (:completed, :failed, :cancelled))";
         var attrNames = new Dictionary<string, string> { ["#status"] = "status" };
         var attrValues = new Dictionary<string, AttributeValue>
         {
@@ -177,7 +177,7 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
         var request = new QueryRequest
         {
             TableName = _tableName,
-            IndexName = "GSI_ClientRequestId",
+            IndexName = "GSI1",
             KeyConditionExpression = "gsi1pk = :pk AND gsi1sk = :sk",
             ExpressionAttributeValues = new Dictionary<string, AttributeValue>
             {

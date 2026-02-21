@@ -1,23 +1,45 @@
-# Subtask 03: Criar endpoints GET /videos e GET /videos/{id}
+# Subtask 03: Implementar actions GET /videos e GET /videos/{id} no VideosController
 
 ## Descrição
-Implementar GET /videos com query params limit e nextToken, e GET /videos/{id} com path param videoId, ambos extraindo userId do JWT, chamando use cases, retornando responses corretas (200, 401, 404), e documentando no OpenAPI.
+Implementar os stubs `ListVideos` e `GetVideo` já declarados em `VideosController`, extraindo `userId` do claim "sub" seguindo o padrão estabelecido em 04.2, renomeando query param `pageSize` → `limit`, chamando os use cases correspondentes, retornando responses corretas (200, 401, 404) e documentando no OpenAPI.
+
+> **Nota:** `VideosController` já possui `[Authorize]` em nível de classe (Story 04.2). Não é necessário nenhum atributo adicional de autenticação nos actions GET.
 
 ## Passos de Implementação
-1. GET /videos: `app.MapGet("/videos", async (HttpContext ctx, IListVideosUseCase useCase, int? limit, string? nextToken, CancellationToken ct) => { ... })` extrair userId, chamar useCase, retornar 200 com VideoListResponseModel
-2. GET /videos/{id}: `app.MapGet("/videos/{id}", async (string id, HttpContext ctx, IGetVideoByIdUseCase useCase, CancellationToken ct) => { ... })` extrair userId, chamar useCase, se null retornar 404, senão 200 com VideoResponseModel
-3. Ambos .RequireAuthorization()
-4. Documentar com ProducesResponseType
+1. Renomear parâmetro `pageSize` → `limit` no action `ListVideos`; manter `nextToken`
+2. Implementar `ListVideos`:
+   ```csharp
+   var sub = User.FindFirst("sub")?.Value;
+   if (string.IsNullOrEmpty(sub) || !Guid.TryParse(sub, out var userId))
+       return Unauthorized();
+   var response = await listVideosUseCase.ExecuteAsync(userId.ToString(), limit ?? 50, nextToken, cancellationToken);
+   return Ok(response);
+   ```
+3. Implementar `GetVideo`:
+   ```csharp
+   var sub = User.FindFirst("sub")?.Value;
+   if (string.IsNullOrEmpty(sub) || !Guid.TryParse(sub, out var userId))
+       return Unauthorized();
+   var response = await getVideoByIdUseCase.ExecuteAsync(userId.ToString(), id.ToString(), cancellationToken);
+   if (response is null) return NotFound();
+   return Ok(response);
+   ```
+4. Injetar `IListVideosUseCase` e `IGetVideoByIdUseCase` no construtor primário do controller
+5. Atualizar `[ProducesResponseType]` existentes se necessário (400 não se aplica ao GET, já correto)
+6. Documentar query params `limit` e `nextToken` com `[FromQuery]`
 
 ## Formas de Teste
-1. GET /videos test: mock useCase, validar 200 com lista
-2. GET /videos/{id} found: validar 200
-3. GET /videos/{id} not found: validar 404
+1. `GET /videos` com token válido → 200 com `VideoListResponseModel`
+2. `GET /videos/{id}` com token válido e vídeo existente → 200 com `VideoResponseModel`
+3. `GET /videos/{id}` com vídeo não encontrado → 404
+4. `GET /videos` sem token → 401 (tratado pela camada de `[Authorize]` da classe)
 
 ## Critérios de Aceite da Subtask
-- [ ] GET /videos implementado com query params limit e nextToken
-- [ ] GET /videos/{id} implementado com path param id
-- [ ] UserId extraído do JWT; ausência retorna 401
-- [ ] GET /videos retorna 200 com VideoListResponseModel
-- [ ] GET /videos/{id} retorna 200 com VideoResponseModel ou 404
-- [ ] Ambos protegidos e documentados no OpenAPI
+- [ ] `ListVideos` action implementado com `[FromQuery] int? limit` e `[FromQuery] string? nextToken`
+- [ ] `GetVideo` action implementado com `Guid id` via `[HttpGet("{id:guid}")]`
+- [ ] `UserId` extraído com `User.FindFirst("sub")` + `Guid.TryParse`; ausência/inválido retorna 401
+- [ ] Não usa `.RequireAuthorization()` nem `[Authorize]` por action — herda da classe
+- [ ] `ListVideos` retorna 200 com `VideoListResponseModel`
+- [ ] `GetVideo` retorna 200 com `VideoResponseModel` ou 404 se não encontrado
+- [ ] `IListVideosUseCase` e `IGetVideoByIdUseCase` injetados no construtor primário
+- [ ] Documentado no OpenAPI (`[ProducesResponseType]` para 200, 401, 404, 500)

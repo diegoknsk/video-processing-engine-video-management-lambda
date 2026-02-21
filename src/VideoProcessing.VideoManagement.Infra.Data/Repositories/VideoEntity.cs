@@ -2,7 +2,7 @@ namespace VideoProcessing.VideoManagement.Infra.Data.Repositories;
 
 /// <summary>
 /// DTO para DynamoDB single-table. pk = USER#{userId}, sk = VIDEO#{videoId}.
-/// GSI_ClientRequestId: gsi1pk = USER#{userId}, gsi1sk = CLIENT_REQUEST#{clientRequestId}.
+/// GSI1: gsi1pk = USER#{userId}, gsi1sk = CLIENT_REQUEST#{clientRequestId}.
 /// </summary>
 public class VideoEntity
 {
@@ -42,7 +42,7 @@ public class VideoEntity
     public string? UpdatedAt { get; set; }
     public int? Version { get; set; }
 
-    // GSI_ClientRequestId: query por userId + clientRequestId
+    // GSI1: query por userId + clientRequestId
     public string? Gsi1Pk { get; set; }  // USER#{userId}
     public string? Gsi1Sk { get; set; }  // CLIENT_REQUEST#{clientRequestId}
 }

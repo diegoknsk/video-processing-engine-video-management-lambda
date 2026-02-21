@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace VideoProcessing.VideoManagement.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[AllowAnonymous]
 public class HealthController : ControllerBase
 {
     [HttpGet]
