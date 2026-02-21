@@ -6,6 +6,8 @@ using Moq;
 using VideoProcessing.VideoManagement.Api.Controllers;
 using VideoProcessing.VideoManagement.Application.Models.InputModels;
 using VideoProcessing.VideoManagement.Application.Models.ResponseModels;
+using VideoProcessing.VideoManagement.Application.UseCases.GetVideoById;
+using VideoProcessing.VideoManagement.Application.UseCases.ListVideos;
 using VideoProcessing.VideoManagement.Application.UseCases.UploadVideo;
 using Xunit;
 
@@ -13,13 +15,17 @@ namespace VideoProcessing.VideoManagement.UnitTests.Api.Controllers;
 
 public class VideosControllerAuthTests
 {
-    private readonly Mock<IUploadVideoUseCase> _useCaseMock;
+    private readonly Mock<IUploadVideoUseCase> _uploadUseCaseMock;
+    private readonly Mock<IListVideosUseCase> _listUseCaseMock;
+    private readonly Mock<IGetVideoByIdUseCase> _getByIdUseCaseMock;
     private readonly VideosController _controller;
 
     public VideosControllerAuthTests()
     {
-        _useCaseMock = new Mock<IUploadVideoUseCase>();
-        _controller = new VideosController(_useCaseMock.Object);
+        _uploadUseCaseMock = new Mock<IUploadVideoUseCase>();
+        _listUseCaseMock = new Mock<IListVideosUseCase>();
+        _getByIdUseCaseMock = new Mock<IGetVideoByIdUseCase>();
+        _controller = new VideosController(_uploadUseCaseMock.Object, _listUseCaseMock.Object, _getByIdUseCaseMock.Object);
     }
 
     private static void SetUser(VideosController controller, ClaimsPrincipal? user)
@@ -49,7 +55,7 @@ public class VideosControllerAuthTests
 
         // Assert
         result.Should().BeOfType<UnauthorizedResult>();
-        _useCaseMock.Verify(
+        _uploadUseCaseMock.Verify(
             x => x.ExecuteAsync(It.IsAny<UploadVideoInputModel>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -75,7 +81,7 @@ public class VideosControllerAuthTests
 
         // Assert
         result.Should().BeOfType<UnauthorizedResult>();
-        _useCaseMock.Verify(
+        _uploadUseCaseMock.Verify(
             x => x.ExecuteAsync(It.IsAny<UploadVideoInputModel>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -104,7 +110,7 @@ public class VideosControllerAuthTests
             ExpiresAt = DateTime.UtcNow.AddMinutes(15)
         };
 
-        _useCaseMock
+        _uploadUseCaseMock
             .Setup(x => x.ExecuteAsync(It.IsAny<UploadVideoInputModel>(), expectedUserId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
@@ -114,7 +120,7 @@ public class VideosControllerAuthTests
         // Assert
         var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
         createdResult.Value.Should().Be(expectedResponse);
-        _useCaseMock.Verify(
+        _uploadUseCaseMock.Verify(
             x => x.ExecuteAsync(input, expectedUserId, It.IsAny<CancellationToken>()),
             Times.Once);
     }

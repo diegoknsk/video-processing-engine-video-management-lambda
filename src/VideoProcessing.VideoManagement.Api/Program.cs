@@ -1,6 +1,10 @@
-
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using VideoProcessing.VideoManagement.Infra.CrossCutting.Middleware;
 using Serilog;
+using VideoProcessing.VideoManagement.Api.Filters;
+using VideoProcessing.VideoManagement.Api.Middleware;
 using Serilog.Formatting.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,7 +40,12 @@ try
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddVideoManagementServices(builder.Configuration);
     builder.Services.AddOpenApiDocumentation();
-    builder.Services.AddControllers();
+    builder.Services.AddControllers(options => options.Filters.Add<ApiResponseFilter>())
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        });
 
     var app = builder.Build();
 
@@ -50,7 +59,7 @@ try
         };
     });
     
-    app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+    app.UseMiddleware<GlobalExceptionMiddleware>();
     app.UseMiddleware<GatewayPathBaseMiddleware>();
     app.UseRouting();
     app.UseAuthentication();
