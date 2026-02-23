@@ -35,6 +35,7 @@
     <ProjectReference Include="..\..\src\VideoProcessing.VideoManagement.Infra.Data\VideoProcessing.VideoManagement.Infra.Data.csproj" />
     <ProjectReference Include="..\..\src\VideoProcessing.VideoManagement.Infra.CrossCutting\VideoProcessing.VideoManagement.Infra.CrossCutting.csproj" />
     <ProjectReference Include="..\..\src\VideoProcessing.VideoManagement.Api\VideoProcessing.VideoManagement.Api.csproj" />
+    <ProjectReference Include="..\..\src\VideoProcessing.VideoManagement.LambdaUpdateVideo\VideoProcessing.VideoManagement.LambdaUpdateVideo.csproj" />
   </ItemGroup>
 
 </Project>

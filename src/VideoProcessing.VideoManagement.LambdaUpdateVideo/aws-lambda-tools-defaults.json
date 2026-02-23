@@ -1,0 +1,9 @@
+{
+  "Information": [
+    "Configuração para o Lambda Test Tool e deploy. Working directory deve ser a pasta deste projeto (LambdaUpdateVideo)."
+  ],
+  "profile": "default",
+  "region": "us-east-1",
+  "configuration": "Debug",
+  "function-handler": "VideoProcessing.VideoManagement.LambdaUpdateVideo::VideoProcessing.VideoManagement.LambdaUpdateVideo.Function::Handler"
+}

@@ -13,14 +13,13 @@ Criar um novo projeto/lambda **VideoProcessing.VideoManagement.LambdaUpdateVideo
 **Sugestão de nome do projeto:** `VideoProcessing.VideoManagement.LambdaUpdateVideo`. Justificativa: mantém o prefixo de domínio (VideoManagement), deixa explícito que é a Lambda de update de vídeo e alinha com o padrão do repositório (VideoProcessing.VideoManagement.*). Alternativa considerada: `VideoProcessing.LambdaUpdateVideo` (mais curto, mas menos explícito no contexto do módulo).
 
 ## Escopo Técnico
-- **Tecnologias:** .NET 10, AWS Lambda (handler padrão, sem AddAWSLambdaHosting), DynamoDB (mesma tabela e modelo do VideoManagement), contrato igual a `UpdateVideoInputModel`
+- **Tecnologias:** .NET 10, AWS Lambda (handler padrão, sem AddAWSLambdaHosting), DynamoDB (mesma tabela e modelo do VideoManagement). **Contrato:** reutilização de `UpdateVideoInputModel` (Application); evento da Lambda = `UpdateVideoLambdaEvent` (estende InputModel com `videoId`).
 - **Arquivos/projetos:**
-  - Novo projeto: `src/VideoProcessing.VideoManagement.LambdaUpdateVideo/` (handler, Function.cs ou equivalente, entrada/saída tipadas)
-  - Referência ao Domain/Application/Infra do VideoManagement (compartilhados ou cópia do contrato) para DynamoDB e entidades (Video, VideoUpdateValues, VideoStatus, IVideoRepository)
-  - Documentação do contrato de entrada (event shape) e exemplos JSON em `docs/lambda-update-video-contract.md` (ou no próprio repositório da story)
-  - VideoManagement: remoção ou substituição do action PATCH por chamada à nova Lambda (HttpClient/Invoke) ou remoção do endpoint com documentação de migração
-- **Componentes:** Lambda Function handler, modelo de evento de entrada, integração DynamoDB (repositório ou cliente), documentação de contrato
-- **Pacotes/Dependências:** AWSSDK.Lambda (se VideoManagement invocar a Lambda), AWS Lambda Core, demais conforme projeto .NET 10 Lambda; versões a definir no bootstrap do novo projeto
+  - Projeto: `src/VideoProcessing.VideoManagement.LambdaUpdateVideo/` — apenas **borda** (Function, Handler, evento/saída). Lógica de negócio: **mesmo Use Case** (`IUpdateVideoUseCase`) e mesmo validator (`UpdateVideoInputModelValidator`) da Application; sem duplicação de regras.
+  - Documentação do contrato (event shape = InputModel + videoId) e exemplos JSON em `docs/lambda-update-video-contract.md`
+  - VideoManagement: PATCH mantido como proxy que invoca a Lambda (mesmo contrato para o cliente).
+- **Componentes:** Lambda Function handler, `UpdateVideoLambdaEvent` (interface externa), `UpdateVideoLambdaResponse`; Use Case e validação compartilhados com a API.
+- **Pacotes/Dependências:** AWS Lambda Core, Application/Infra referenciados; AWSSDK.Lambda apenas na API (proxy).
 
 ## Dependências e Riscos (para estimativa)
 - **Dependências:** Storie-02 (modelo DynamoDB e repositório), Storie-06 (contrato PATCH e UpdateVideoInputModel), solução atual do VideoManagement compilando e testada
@@ -79,6 +78,6 @@ Para testes manuais (Postman, AWS Lambda test event). Campos obrigatórios: `use
 - [ ] Formas de invocação da Lambda documentadas (chamada direta, API Gateway route futura, SQS) sem implementar a borda se ainda não existir
 
 ## Rastreamento (dev tracking)
-- **Início:** —
+- **Início:** 22/02/2026, às 20:17 (Brasília)
 - **Fim:** —
 - **Tempo total de desenvolvimento:** —

@@ -5,7 +5,7 @@ Criar o novo projeto .NET 10 para a Lambda de update de vídeo (VideoProcessing.
 
 ## Passos de Implementação
 1. Criar pasta `src/VideoProcessing.VideoManagement.LambdaUpdateVideo/` e projeto de tipo AWS Lambda (.NET 10), configurado para handler padrão (não Minimal API / AddAWSLambdaHosting)
-2. Definir classe ou record de entrada (ex.: `UpdateVideoLambdaRequest`) com: `VideoId` (Guid ou string) e propriedades espelhando `UpdateVideoInputModel` (UserId, Status?, ProgressPercent?, ErrorMessage?, ErrorCode?, FramesPrefix?, S3KeyZip?, S3BucketFrames?, S3BucketZip?, StepExecutionArn?) para deserialização do JSON do evento
+2. Definir tipo de evento que **reutiliza** `UpdateVideoInputModel`: record `UpdateVideoLambdaEvent` que estende `UpdateVideoInputModel` e adiciona apenas `VideoId` (Guid), para deserialização do JSON do evento sem duplicar propriedades
 3. Documentar no código ou em doc o event shape: formato esperado para invocação direta (ex.: `{ "videoId": "guid", "userId": "guid", "status": 2, "progressPercent": 50, ... }`) e, se aplicável, como seria mapeado a partir de API Gateway (body + path parameter) ou SQS (message body)
 4. Adicionar o projeto à solução (.sln) e referências mínimas (Domain ou contratos compartilhados) para tipos VideoStatus e nomes de campos alinhados ao DynamoDB
 
