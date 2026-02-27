@@ -73,7 +73,7 @@ jobs:
         aws lambda update-function-configuration \
           --function-name "$FUNCTION_NAME" \
           --handler "VideoProcessing.VideoManagement.LambdaUpdateVideo::VideoProcessing.VideoManagement.LambdaUpdateVideo.Function::Handler" \
-          --environment "Variables={DynamoDB__TableName=$TABLE_NAME,DynamoDB__Region=$REGION,AWS_REGION=$REGION}"
+          --environment "Variables={DynamoDB__TableName=$TABLE_NAME,DynamoDB__Region=$REGION}"
 
     - name: Verify deployment
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'

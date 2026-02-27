@@ -19,7 +19,7 @@ O workflow `.github/workflows/deploy-lambda-update-video.yml`:
 1. **Build & Test**: restore, build e `dotnet test` (falha aborta o deploy).
 2. **Publish**: publica o projeto LambdaUpdateVideo para `linux-x64` (self-contained false).
 3. **Package**: cria o ZIP do conteúdo da pasta de publish.
-4. **Deploy** (apenas em `push` ou `workflow_dispatch`): configura credenciais AWS, `update-function-code` com o ZIP, `wait function-updated`, `update-function-configuration` com Handler e **variáveis de ambiente** (DynamoDB__TableName, DynamoDB__Region, AWS_REGION).
+4. **Deploy** (apenas em `push` ou `workflow_dispatch`): configura credenciais AWS, `update-function-code` com o ZIP, `wait function-updated`, `update-function-configuration` com Handler e **variáveis de ambiente** (DynamoDB__TableName, DynamoDB__Region).
 5. **Artifact**: faz upload do ZIP para download opcional.
 
 O nome da função Lambda é obtido da variável **LAMBDA_FUNCTION_UPDATE_STATUS_NAME**. Credenciais AWS vêm dos secrets (incluindo **AWS_SESSION_TOKEN** para AWS Academy). O workflow usa **DYNAMODB_TABLE_NAME** (a mesma do deploy Video Management) para preencher `DynamoDB__TableName` na Lambda.
@@ -34,7 +34,7 @@ O nome da função Lambda é obtido da variável **LAMBDA_FUNCTION_UPDATE_STATUS
 
 Configurar em **Settings → Secrets and variables → Actions**.
 
-**Parâmetro novo:** apenas **LAMBDA_FUNCTION_UPDATE_STATUS_NAME**. Região, credenciais e **DYNAMODB_TABLE_NAME** são os mesmos do deploy Video Management; o workflow grava na Lambda as env vars `DynamoDB__TableName`, `DynamoDB__Region` e `AWS_REGION`.
+**Parâmetro novo:** apenas **LAMBDA_FUNCTION_UPDATE_STATUS_NAME**. Região, credenciais e **DYNAMODB_TABLE_NAME** são os mesmos do deploy Video Management; o workflow grava na Lambda as env vars `DynamoDB__TableName` e `DynamoDB__Region` (a região já é fornecida automaticamente pelo runtime da Lambda).
 
 ### Variables (Actions → Variables)
 
@@ -107,7 +107,7 @@ Resposta de sucesso inclui `statusCode: 200` e o objeto `video`; erros de valida
 
 ### Variáveis de ambiente na função
 
-O **workflow** já define na Lambda: `DynamoDB__TableName` (de `DYNAMODB_TABLE_NAME`), `DynamoDB__Region` e `AWS_REGION`. Não é necessário configurá-las manualmente no console após o deploy. (O `update-function-configuration` substitui o conjunto de variáveis de ambiente da função pelo que o workflow envia.)
+O **workflow** já define na Lambda: `DynamoDB__TableName` (de `DYNAMODB_TABLE_NAME`) e `DynamoDB__Region`. Não é necessário configurá-las manualmente no console após o deploy. (O `update-function-configuration` substitui o conjunto de variáveis de ambiente da função pelo que o workflow envia.)
 
 ## Troubleshooting
 
