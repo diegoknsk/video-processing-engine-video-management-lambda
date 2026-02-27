@@ -64,13 +64,16 @@ jobs:
         FUNCTION_NAME=${{ vars.LAMBDA_FUNCTION_UPDATE_STATUS_NAME }}
         aws lambda wait function-updated --function-name "$FUNCTION_NAME"
 
-    - name: Update Lambda configuration (Handler)
+    - name: Update Lambda configuration (Handler e variáveis de ambiente)
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
       run: |
         FUNCTION_NAME=${{ vars.LAMBDA_FUNCTION_UPDATE_STATUS_NAME }}
+        REGION=${{ vars.AWS_REGION || 'us-east-1' }}
+        TABLE_NAME="${{ vars.DYNAMODB_TABLE_NAME }}"
         aws lambda update-function-configuration \
           --function-name "$FUNCTION_NAME" \
-          --handler "VideoProcessing.VideoManagement.LambdaUpdateVideo::VideoProcessing.VideoManagement.LambdaUpdateVideo.Function::Handler"
+          --handler "VideoProcessing.VideoManagement.LambdaUpdateVideo::VideoProcessing.VideoManagement.LambdaUpdateVideo.Function::Handler" \
+          --environment "Variables={DynamoDB__TableName=$TABLE_NAME,DynamoDB__Region=$REGION,AWS_REGION=$REGION}"
 
     - name: Verify deployment
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'

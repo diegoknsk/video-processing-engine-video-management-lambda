@@ -19,10 +19,10 @@ O workflow `.github/workflows/deploy-lambda-update-video.yml`:
 1. **Build & Test**: restore, build e `dotnet test` (falha aborta o deploy).
 2. **Publish**: publica o projeto LambdaUpdateVideo para `linux-x64` (self-contained false).
 3. **Package**: cria o ZIP do conteúdo da pasta de publish.
-4. **Deploy** (apenas em `push` ou `workflow_dispatch`): configura credenciais AWS, `update-function-code` com o ZIP, `wait function-updated`, `update-function-configuration` com o Handler correto.
+4. **Deploy** (apenas em `push` ou `workflow_dispatch`): configura credenciais AWS, `update-function-code` com o ZIP, `wait function-updated`, `update-function-configuration` com Handler e **variáveis de ambiente** (DynamoDB__TableName, DynamoDB__Region, AWS_REGION).
 5. **Artifact**: faz upload do ZIP para download opcional.
 
-O nome da função Lambda é obtido da variável **LAMBDA_FUNCTION_UPDATE_STATUS_NAME**. Credenciais AWS vêm dos secrets (incluindo **AWS_SESSION_TOKEN** para AWS Academy).
+O nome da função Lambda é obtido da variável **LAMBDA_FUNCTION_UPDATE_STATUS_NAME**. Credenciais AWS vêm dos secrets (incluindo **AWS_SESSION_TOKEN** para AWS Academy). O workflow usa **DYNAMODB_TABLE_NAME** (a mesma do deploy Video Management) para preencher `DynamoDB__TableName` na Lambda.
 
 ## Pré-requisitos
 
@@ -34,7 +34,7 @@ O nome da função Lambda é obtido da variável **LAMBDA_FUNCTION_UPDATE_STATUS
 
 Configurar em **Settings → Secrets and variables → Actions**.
 
-**Único parâmetro novo:** para este workflow você só precisa adicionar **uma** variável: `LAMBDA_FUNCTION_UPDATE_STATUS_NAME`. Região e credenciais AWS são **os mesmos** já usados pelo deploy da Lambda Video Management — não é necessário duplicar variáveis (nome de tabela, buckets etc. são configurados na própria função Lambda na AWS, não no GitHub).
+**Parâmetro novo:** apenas **LAMBDA_FUNCTION_UPDATE_STATUS_NAME**. Região, credenciais e **DYNAMODB_TABLE_NAME** são os mesmos do deploy Video Management; o workflow grava na Lambda as env vars `DynamoDB__TableName`, `DynamoDB__Region` e `AWS_REGION`.
 
 ### Variables (Actions → Variables)
 
@@ -42,6 +42,7 @@ Configurar em **Settings → Secrets and variables → Actions**.
 |------|-----------|---------|
 | `LAMBDA_FUNCTION_UPDATE_STATUS_NAME` | **(novo)** Nome da função Lambda Update Video na AWS | `video-management-update-video` |
 | `AWS_REGION` | Mesmo do deploy Video Management (opcional; default: `us-east-1`) | `us-east-1` |
+| `DYNAMODB_TABLE_NAME` | Mesmo do deploy Video Management; usado para `DynamoDB__TableName` na Lambda | `video-processing-engine-dev-videos` |
 
 ### Secrets (Actions → Secrets)
 
@@ -106,10 +107,7 @@ Resposta de sucesso inclui `statusCode: 200` e o objeto `video`; erros de valida
 
 ### Variáveis de ambiente na função
 
-Na AWS, configure na função Lambda (se ainda não estiverem definidas):
-
-- `DynamoDB__TableName`: nome da tabela de vídeos.
-- `DynamoDB__Region` ou `AWS_REGION`: região do DynamoDB.
+O **workflow** já define na Lambda: `DynamoDB__TableName` (de `DYNAMODB_TABLE_NAME`), `DynamoDB__Region` e `AWS_REGION`. Não é necessário configurá-las manualmente no console após o deploy. (O `update-function-configuration` substitui o conjunto de variáveis de ambiente da função pelo que o workflow envia.)
 
 ## Troubleshooting
 
@@ -119,6 +117,7 @@ Na AWS, configure na função Lambda (se ainda não estiverem definidas):
 | **Handler inválido** após deploy | Handler não corresponde ao assembly .NET | O workflow define: `VideoProcessing.VideoManagement.LambdaUpdateVideo::VideoProcessing.VideoManagement.LambdaUpdateVideo.Function::Handler`. Confira no csproj (LambdaHandler) e na documentação da Storie-10. |
 | **Timeout** na execução da Lambda | Cold start ou lógica lenta | Aumente o timeout da função na AWS (ex.: 30 s). |
 | **DynamoDB / env vars** | Tabela ou região incorretas | Configure `DynamoDB__TableName` e região nas variáveis de ambiente da função no console AWS. |
+| **TableName must have length >= 1** (AmazonDynamoDBException) | A aplicação lê o nome da tabela da chave **DynamoDB__TableName**, não `TABLE_NAME`. | Na Lambda, adicione a variável **DynamoDB__TableName** com o valor da tabela (ex.: `video-processing-engine-dev-videos`). O nome exato da chave é obrigatório. |
 | Workflow falha com variável vazia | `LAMBDA_FUNCTION_UPDATE_STATUS_NAME` não configurada | Defina a variable no repositório (Actions → Variables). |
 
 ## AWS Academy / credenciais temporárias
