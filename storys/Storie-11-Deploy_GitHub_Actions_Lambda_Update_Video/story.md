@@ -41,6 +41,6 @@ Criar workflow GitHub Actions dedicado ao deploy da Lambda Update Video: restore
 - [ ] Build e testes do repositório (incluindo LambdaUpdateVideo) passam no workflow; deploy executado com sucesso em ambiente de teste (ou documentado como manual quando Academy não permitir)
 
 ## Rastreamento (dev tracking)
-- **Início:** —
+- **Início:** 26/02/2026, às 21:14 (Brasília)
 - **Fim:** —
 - **Tempo total de desenvolvimento:** —

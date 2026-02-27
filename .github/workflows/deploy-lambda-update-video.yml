@@ -1,0 +1,85 @@
+name: Deploy Lambda Update Video
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build solution
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Run tests
+      run: dotnet test --configuration Release --no-build --verbosity normal
+
+    - name: Publish Lambda Update Video
+      run: |
+        dotnet publish src/VideoProcessing.VideoManagement.LambdaUpdateVideo/VideoProcessing.VideoManagement.LambdaUpdateVideo.csproj \
+          --configuration Release \
+          --output ./publish-update-video \
+          --runtime linux-x64 \
+          --self-contained false
+
+    - name: Create deployment package
+      run: |
+        cd publish-update-video
+        zip -r ../deployment-package-update-video.zip .
+
+    - name: Configure AWS credentials
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+    - name: Deploy to Lambda
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      run: |
+        FUNCTION_NAME=${{ vars.LAMBDA_FUNCTION_UPDATE_STATUS_NAME }}
+        aws lambda update-function-code \
+          --function-name "$FUNCTION_NAME" \
+          --zip-file fileb://deployment-package-update-video.zip
+
+    - name: Wait for Lambda update
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      run: |
+        FUNCTION_NAME=${{ vars.LAMBDA_FUNCTION_UPDATE_STATUS_NAME }}
+        aws lambda wait function-updated --function-name "$FUNCTION_NAME"
+
+    - name: Update Lambda configuration (Handler)
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      run: |
+        FUNCTION_NAME=${{ vars.LAMBDA_FUNCTION_UPDATE_STATUS_NAME }}
+        aws lambda update-function-configuration \
+          --function-name "$FUNCTION_NAME" \
+          --handler "VideoProcessing.VideoManagement.LambdaUpdateVideo::VideoProcessing.VideoManagement.LambdaUpdateVideo.Function::Handler"
+
+    - name: Verify deployment
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      run: |
+        FUNCTION_NAME=${{ vars.LAMBDA_FUNCTION_UPDATE_STATUS_NAME }}
+        aws lambda get-function --function-name "$FUNCTION_NAME" --query 'Configuration.[FunctionName,LastModified,State,Handler]' --output table
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: deployment-package-update-video
+        path: deployment-package-update-video.zip
