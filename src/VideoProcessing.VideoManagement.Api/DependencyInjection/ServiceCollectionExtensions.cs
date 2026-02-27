@@ -1,8 +1,11 @@
 using Amazon.DynamoDBv2;
+using Amazon.Lambda;
 using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VideoProcessing.VideoManagement.Api.Configuration;
+using VideoProcessing.VideoManagement.Api.Services;
 using VideoProcessing.VideoManagement.Application.Ports;
 using VideoProcessing.VideoManagement.Infra.CrossCutting.Configuration;
 using VideoProcessing.VideoManagement.Application.Configuration;
@@ -39,6 +42,9 @@ public static class ServiceCollectionExtensions
         services.AddOptions<CognitoOptions>()
             .Bind(configuration.GetSection("Cognito"));
 
+        services.AddOptions<LambdaUpdateVideoOptions>()
+            .Bind(configuration.GetSection("Lambda:UpdateVideo"));
+
         // Authentication: JWT Bearer (Cognito)
         var cognitoSection = configuration.GetSection("Cognito");
         var cognitoRegion = cognitoSection["Region"] ?? "us-east-1";
@@ -63,6 +69,7 @@ public static class ServiceCollectionExtensions
         // Infra.Data: clientes AWS e repositórios
         services.AddSingleton<IAmazonDynamoDB>(_ => new AmazonDynamoDBClient());
         services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client());
+        services.AddSingleton(new AmazonLambdaClient());
         services.AddScoped<IVideoRepository, VideoRepository>();
 
         // Infra.Data: Services
@@ -76,7 +83,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUploadVideoUseCase, UploadVideoUseCase>();
         services.AddScoped<IListVideosUseCase, ListVideosUseCase>();
         services.AddScoped<IGetVideoByIdUseCase, GetVideoByIdUseCase>();
-        services.AddScoped<IUpdateVideoUseCase, UpdateVideoUseCase>();
+        // PATCH de vídeo: proxy para a Lambda Update Video (mesmo contrato para o cliente)
+        services.AddScoped<IUpdateVideoUseCase, UpdateVideoLambdaProxyUseCase>();
 
         return services;
     }

@@ -5,11 +5,14 @@
     <ProjectReference Include="..\VideoProcessing.VideoManagement.Domain\VideoProcessing.VideoManagement.Domain.csproj" />
     <ProjectReference Include="..\VideoProcessing.VideoManagement.Infra.Data\VideoProcessing.VideoManagement.Infra.Data.csproj" />
     <ProjectReference Include="..\VideoProcessing.VideoManagement.Infra.CrossCutting\VideoProcessing.VideoManagement.Infra.CrossCutting.csproj" />
+    <ProjectReference Include="..\VideoProcessing.VideoManagement.LambdaUpdateVideo\VideoProcessing.VideoManagement.LambdaUpdateVideo.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.AspNetCoreServer.Hosting" Version="1.9.1" />
+    <PackageReference Include="AWSSDK.Core" Version="4.0.3.12" />
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.14" />
+    <PackageReference Include="AWSSDK.Lambda" Version="4.0.13.1" />
     <PackageReference Include="AWSSDK.S3" Version="4.0.18.6" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
     <PackageReference Include="Microsoft.OpenApi" Version="1.6.14" />

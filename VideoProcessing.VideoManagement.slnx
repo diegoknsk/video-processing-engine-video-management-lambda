@@ -5,6 +5,7 @@
     <Project Path="src/VideoProcessing.VideoManagement.Domain/VideoProcessing.VideoManagement.Domain.csproj" />
     <Project Path="src/VideoProcessing.VideoManagement.Infra.CrossCutting/VideoProcessing.VideoManagement.Infra.CrossCutting.csproj" />
     <Project Path="src/VideoProcessing.VideoManagement.Infra.Data/VideoProcessing.VideoManagement.Infra.Data.csproj" />
+    <Project Path="src/VideoProcessing.VideoManagement.LambdaUpdateVideo/VideoProcessing.VideoManagement.LambdaUpdateVideo.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/VideoProcessing.VideoManagement.UnitTests/VideoProcessing.VideoManagement.UnitTests.csproj" />

@@ -23,7 +23,9 @@ Serviço Serverless (AWS Lambda) responsável pelo gerenciamento de vídeos (upl
    ```
 
 ## Deploy
-O deploy é realizado via GitHub Actions. Para mais detalhes sobre configuração de secrets e variáveis, consulte a [Documentação de Deploy](docs/deploy-video-management-lambda.md).
+O deploy é realizado via GitHub Actions:
+- **Video Management (Lambda API):** [Documentação de Deploy](docs/deploy-video-management-lambda.md)
+- **Lambda Update Video (ZIP):** [Documentação de Deploy Lambda Update Video](docs/deploy-lambda-update-video.md)
 
 ## Variáveis de Ambiente
 Consulte `appsettings.json` para ver as chaves de configuração esperadas (AWS, DynamoDB, S3, Cognito).

@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <AssemblyName>VideoProcessing.VideoManagement.LambdaUpdateVideo</AssemblyName>
+    <RootNamespace>VideoProcessing.VideoManagement.LambdaUpdateVideo</RootNamespace>
+    <!-- Handler padrão .NET: assembly::namespace.class::method (sem AddAWSLambdaHosting) -->
+    <AWSProjectType>Lambda</AWSProjectType>
+    <LambdaHandler>VideoProcessing.VideoManagement.LambdaUpdateVideo::VideoProcessing.VideoManagement.LambdaUpdateVideo.Function::Handler</LambdaHandler>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VideoProcessing.VideoManagement.Application\VideoProcessing.VideoManagement.Application.csproj" />
+    <ProjectReference Include="..\VideoProcessing.VideoManagement.Domain\VideoProcessing.VideoManagement.Domain.csproj" />
+    <ProjectReference Include="..\VideoProcessing.VideoManagement.Infra.Data\VideoProcessing.VideoManagement.Infra.Data.csproj" />
+    <ProjectReference Include="..\VideoProcessing.VideoManagement.Infra.CrossCutting\VideoProcessing.VideoManagement.Infra.CrossCutting.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Amazon.Lambda.Core" Version="2.8.0" />
+    <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.5" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.3" />
+  </ItemGroup>
+
+</Project>

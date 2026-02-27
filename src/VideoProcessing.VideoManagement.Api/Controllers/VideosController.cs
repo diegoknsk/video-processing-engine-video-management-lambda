@@ -132,6 +132,10 @@ public class VideosController(
 
             return Ok(response);
         }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ApiErrorResponse.Create("ValidationFailed", ex.Errors.Any() ? string.Join("; ", ex.Errors.Select(e => e.ErrorMessage)) : ex.Message));
+        }
         catch (VideoUpdateConflictException ex)
         {
             return Conflict(ApiErrorResponse.Create("UpdateConflict", ex.Message));

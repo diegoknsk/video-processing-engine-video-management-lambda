@@ -87,10 +87,28 @@ Este conjunto de stories técnicas implementa a **Etapa 2 do Video Processing En
 
 ---
 
+### [Storie-10: Extrair Update de Vídeo para Lambda Pura (LambdaUpdateVideo)](./Storie-10-Extrair_Update_Video_Lambda_Pura/story.md)
+**Objetivo:** Criar novo projeto Lambda pura (VideoProcessing.VideoManagement.LambdaUpdateVideo), handler padrão .NET sem AddAWSLambdaHosting, com mesmo contrato do PATCH atual (update parcial no DynamoDB); documentar event shape e exemplos JSON (mínimo e completo); adaptar VideoManagement (remover ou encaminhar PATCH para a nova Lambda).
+
+**Subtasks:** 5 (Projeto + contrato event, Documentação contrato + exemplos JSON, Handler + DynamoDB, Validação + testes unitários, Adaptar VideoManagement PATCH)
+
+**Dependências:** Story 02, Story 06
+
+---
+
+### [Storie-11: Deploy GitHub Actions do Lambda Update Video (ZIP)](./Storie-11-Deploy_GitHub_Actions_Lambda_Update_Video/story.md)
+**Objetivo:** Pipeline de deploy via GitHub Actions para a Lambda Update Video: build, test, publish, ZIP, update-function-code e update-function-configuration (Handler); variável LAMBDA_FUNCTION_UPDATE_STATUS_NAME e credenciais AWS Academy; documentação e teste manual pós-deploy.
+
+**Subtasks:** 4 (Workflow build/test/publish/ZIP, Deploy AWS + Handler, Variáveis e secrets AWS Academy, Documentação e teste manual)
+
+**Dependências:** Story 10
+
+---
+
 ## 🎯 Resumo Executivo
 
-### Total de Stories: **8** (incl. 01.2 e 08)
-### Total de Subtasks: **40**
+### Total de Stories: **10** (incl. 01.2, 08, 10 e 11)
+### Total de Subtasks: **49**
 
 ### Escopo Funcional Coberto:
 ✅ Bootstrap completo do projeto (.NET 10, Clean Architecture, AWS Lambda Hosting)  
