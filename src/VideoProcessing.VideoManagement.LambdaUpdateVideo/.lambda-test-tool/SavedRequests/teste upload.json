@@ -1,0 +1,9 @@
+{
+  "videoId": "7319f0e1-e4e4-4ef1-956d-14b620280564",
+  "userId": "f478b4b8-f0a1-7027-8d70-d587edc1ad21",
+  "status": 3,
+  "progressPercent": 40,
+  "framesPrefix": "",
+  "s3KeyZip": "",
+  "s3BucketFrames": "video-processing-engine-dev-videos"
+}

@@ -6,7 +6,7 @@
       "workingDirectory": "$(ProjectDir)",
       "environmentVariables": {
         "AWS_REGION": "us-east-1",
-        "DynamoDB__TableName": "videos",
+        "DynamoDB__TableName": "video-processing-engine-dev-videos",
         "DynamoDB__Region": "us-east-1"
       }
     }
