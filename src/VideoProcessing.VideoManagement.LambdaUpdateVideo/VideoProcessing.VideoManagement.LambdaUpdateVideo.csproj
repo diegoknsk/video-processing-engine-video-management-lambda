@@ -11,6 +11,8 @@
     <!-- Handler padrão .NET: assembly::namespace.class::method (sem AddAWSLambdaHosting) -->
     <AWSProjectType>Lambda</AWSProjectType>
     <LambdaHandler>VideoProcessing.VideoManagement.LambdaUpdateVideo::VideoProcessing.VideoManagement.LambdaUpdateVideo.Function::Handler</LambdaHandler>
+    <!-- Garante .runtimeconfig.json no publish para deploy ZIP na Lambda (runtime exige em /var/task) -->
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
 
   <ItemGroup>
