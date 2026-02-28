@@ -8,6 +8,7 @@
 
 | Se a tarefa envolver... | Use a skill |
 |------------------------|-------------|
+| Estrutura de projeto, macro-diretórios, Solution Folders, multi-entrypoint (API + Lambda) | **architecture-clean-70-dotnet** |
 | DB, repositório, EF Core, queries, migrations | **database-persistence** |
 | API externa, Refit, HttpClient, consumir API | **external-api-refit** |
 | Validação, FluentValidation, validators, InputModels | **validation-fluentvalidation** |
