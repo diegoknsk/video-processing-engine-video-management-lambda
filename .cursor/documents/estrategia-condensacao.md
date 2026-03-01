@@ -3,6 +3,8 @@
 **Data:** 14/02/2026  
 **Objetivo:** Reduzir ~70% do tamanho mantendo 100% da eficácia
 
+**Arquitetura:** Para organização arquitetural e macro-estrutura de projetos .NET (diretórios, Solution Folders, multi-entrypoint), consultar a skill `.cursor/skills/architecture-clean-70-dotnet/SKILL.md`.
+
 ---
 
 ## 1. Análise do Estado Atual

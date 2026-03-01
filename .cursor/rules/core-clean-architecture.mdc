@@ -1,19 +1,16 @@
 ---
 alwaysApply: true
-description: "Arquitetura em camadas — separação clara, fluxo de dados, inversão de dependência. Quick reference e skills por contexto."
+description: "Arquitetura em camadas — separação clara, fluxo de dados, inversão de dependência. Estrutura e multi-entrypoint na skill; princípios aqui."
 ---
 
-# Clean Architecture Core — Estrutura Universal
+# Clean Architecture Core — Princípios
 
 - **Camadas:** Api → Application → Domain; Infra.* implementa Ports; Domain sem dependências externas.
 - **Fluxo:** Controller recebe InputModel no body; chama UseCase com dados de rota/auth separados; UseCase chama Ports, Presenter e retorna ResponseModel. **Não** criar RequestModels; InputModel é contrato único.
 - **Controllers:** apenas receber InputModel, extrair rota/auth, chamar UseCase, retornar resultado; filtro/middleware padronizam respostas e erros.
 
-**Quick Reference:** para princípios-chave e tabela de decisão, consultar `.cursor/documents/quick-reference.md`.
+**Estrutura de projeto (macro-diretórios, Solution Folders, multi-entrypoint API + Lambda):** consultar `.cursor/skills/architecture-clean-70-dotnet/SKILL.md`. Esta rule mantém apenas princípios de alto nível.
 
-**Skills por contexto:** aplicar skill conforme a tarefa:
-- Persistência → `.cursor/skills/database-persistence/SKILL.md`
-- API externa → `.cursor/skills/external-api-refit/SKILL.md`
-- Validação → `.cursor/skills/validation-fluentvalidation/SKILL.md`
-- Testes → `.cursor/skills/testing/SKILL.md`
-- Stories → `.cursor/skills/technical-stories/SKILL.md`
+**Quick Reference:** `.cursor/documents/quick-reference.md`.
+
+**Skills por contexto:** Persistência → database-persistence; API externa → external-api-refit; Validação → validation-fluentvalidation; Testes → testing; Stories → technical-stories.

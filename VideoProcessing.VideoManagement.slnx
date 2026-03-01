@@ -1,11 +1,15 @@
 <Solution>
-  <Folder Name="/src/">
-    <Project Path="src/VideoProcessing.VideoManagement.Api/VideoProcessing.VideoManagement.Api.csproj" />
-    <Project Path="src/VideoProcessing.VideoManagement.Application/VideoProcessing.VideoManagement.Application.csproj" />
-    <Project Path="src/VideoProcessing.VideoManagement.Domain/VideoProcessing.VideoManagement.Domain.csproj" />
-    <Project Path="src/VideoProcessing.VideoManagement.Infra.CrossCutting/VideoProcessing.VideoManagement.Infra.CrossCutting.csproj" />
-    <Project Path="src/VideoProcessing.VideoManagement.Infra.Data/VideoProcessing.VideoManagement.Infra.Data.csproj" />
-    <Project Path="src/VideoProcessing.VideoManagement.LambdaUpdateVideo/VideoProcessing.VideoManagement.LambdaUpdateVideo.csproj" />
+  <Folder Name="/Core/">
+    <Project Path="src/Core/VideoProcessing.VideoManagement.Domain/VideoProcessing.VideoManagement.Domain.csproj" />
+    <Project Path="src/Core/VideoProcessing.VideoManagement.Application/VideoProcessing.VideoManagement.Application.csproj" />
+  </Folder>
+  <Folder Name="/Infra/">
+    <Project Path="src/Infra/VideoProcessing.VideoManagement.Infra.Data/VideoProcessing.VideoManagement.Infra.Data.csproj" />
+    <Project Path="src/Infra/VideoProcessing.VideoManagement.Infra.CrossCutting/VideoProcessing.VideoManagement.Infra.CrossCutting.csproj" />
+  </Folder>
+  <Folder Name="/InterfacesExternas/">
+    <Project Path="src/InterfacesExternas/VideoProcessing.VideoManagement.Api/VideoProcessing.VideoManagement.Api.csproj" />
+    <Project Path="src/InterfacesExternas/VideoProcessing.VideoManagement.LambdaUpdateVideo/VideoProcessing.VideoManagement.LambdaUpdateVideo.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/VideoProcessing.VideoManagement.UnitTests/VideoProcessing.VideoManagement.UnitTests.csproj" />

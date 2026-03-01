@@ -30,7 +30,7 @@ jobs:
 
     - name: Publish application
       run: |
-        dotnet publish src/VideoProcessing.VideoManagement.Api/VideoProcessing.VideoManagement.Api.csproj \
+        dotnet publish src/InterfacesExternas/VideoProcessing.VideoManagement.Api/VideoProcessing.VideoManagement.Api.csproj \
           --configuration Release \
           --output ./publish \
           --runtime linux-x64 \

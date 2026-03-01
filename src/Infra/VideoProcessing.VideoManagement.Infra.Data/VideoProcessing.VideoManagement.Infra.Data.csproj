@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\VideoProcessing.VideoManagement.Application\VideoProcessing.VideoManagement.Application.csproj" />
-    <ProjectReference Include="..\VideoProcessing.VideoManagement.Domain\VideoProcessing.VideoManagement.Domain.csproj" />
+    <ProjectReference Include="..\..\Core\VideoProcessing.VideoManagement.Application\VideoProcessing.VideoManagement.Application.csproj" />
+    <ProjectReference Include="..\..\Core\VideoProcessing.VideoManagement.Domain\VideoProcessing.VideoManagement.Domain.csproj" />
     <ProjectReference Include="..\VideoProcessing.VideoManagement.Infra.CrossCutting\VideoProcessing.VideoManagement.Infra.CrossCutting.csproj" />
   </ItemGroup>
 

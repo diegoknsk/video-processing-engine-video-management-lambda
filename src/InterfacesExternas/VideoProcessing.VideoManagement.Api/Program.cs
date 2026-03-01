@@ -23,7 +23,7 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     var builder = WebApplication.CreateBuilder(args);
-    
+
     // Add Serilog (sink e níveis definidos em appsettings; um único Console/JSON para Lambda/CloudWatch)
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .ReadFrom.Configuration(context.Configuration)
@@ -46,6 +46,21 @@ try
             options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
         });
 
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy("ScopeAnalyzeRun", policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.RequireAssertion(ctx =>
+            {
+                var scope = ctx.User.FindFirst("scope")?.Value ?? "";
+                // cognito coloca scopes num string separado por espaço
+                return scope.Split(' ').Contains("video-processing-engine/analyze:run");
+            });
+        });
+    });
+
+
     var app = builder.Build();
 
     // Pipeline
@@ -57,7 +72,7 @@ try
             diagnosticContext.Set("UserId", httpContext.User?.FindFirst("sub")?.Value);
         };
     });
-    
+
     app.UseMiddleware<GlobalExceptionMiddleware>();
     app.UseMiddleware<GatewayPathBaseMiddleware>();
     app.UseRouting();
