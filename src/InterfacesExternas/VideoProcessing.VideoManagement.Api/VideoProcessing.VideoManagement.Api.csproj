@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
-    <ProjectReference Include="..\VideoProcessing.VideoManagement.Application\VideoProcessing.VideoManagement.Application.csproj" />
-    <ProjectReference Include="..\VideoProcessing.VideoManagement.Domain\VideoProcessing.VideoManagement.Domain.csproj" />
-    <ProjectReference Include="..\VideoProcessing.VideoManagement.Infra.Data\VideoProcessing.VideoManagement.Infra.Data.csproj" />
-    <ProjectReference Include="..\VideoProcessing.VideoManagement.Infra.CrossCutting\VideoProcessing.VideoManagement.Infra.CrossCutting.csproj" />
+    <ProjectReference Include="..\..\Core\VideoProcessing.VideoManagement.Application\VideoProcessing.VideoManagement.Application.csproj" />
+    <ProjectReference Include="..\..\Core\VideoProcessing.VideoManagement.Domain\VideoProcessing.VideoManagement.Domain.csproj" />
+    <ProjectReference Include="..\..\Infra\VideoProcessing.VideoManagement.Infra.Data\VideoProcessing.VideoManagement.Infra.Data.csproj" />
+    <ProjectReference Include="..\..\Infra\VideoProcessing.VideoManagement.Infra.CrossCutting\VideoProcessing.VideoManagement.Infra.CrossCutting.csproj" />
     <ProjectReference Include="..\VideoProcessing.VideoManagement.LambdaUpdateVideo\VideoProcessing.VideoManagement.LambdaUpdateVideo.csproj" />
   </ItemGroup>
 

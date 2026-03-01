@@ -4,18 +4,17 @@
 Serviço Serverless (AWS Lambda) responsável pelo gerenciamento de vídeos (upload, consulta, status). Desenvolvido em .NET 10 seguindo Clean Architecture.
 
 ## Estrutura do Projeto
-- **Api**: Entry point (Lambda Hosting), Controllers/Endpoints.
-- **Application**: Casos de uso, interfaces (Ports), Models.
-- **Domain**: Entidades, Value Objects, Regras de negócio.
-- **Infra.Data**: Implementação de repositórios (DynamoDB, S3).
-- **Infra.CrossCutting**: Configurações, Logging, IoC.
-- **UnitTests**: Testes unitários com xUnit.
+Diretórios seguem Clean Architecture (~70%): Core, Infra, InterfacesExternas, Tests (detalhes em `.cursor/skills/architecture-clean-70-dotnet/SKILL.md`).
+- **src/Core**: Domain, Application (casos de uso, Ports, Models).
+- **src/Infra**: Infra.Data (DynamoDB, S3), Infra.CrossCutting (config, logging).
+- **src/InterfacesExternas**: Api (Lambda Hosting, Controllers), LambdaUpdateVideo.
+- **tests**: UnitTests (xUnit).
 
 ## Configuração Local
 1. **Pré-requisitos**: .NET 10 SDK, Docker (opcional para emulação).
 2. **Executar**:
    ```bash
-   dotnet run --project src/VideoProcessing.VideoManagement.Api
+   dotnet run --project src/InterfacesExternas/VideoProcessing.VideoManagement.Api
    ```
 3. **Testes**:
    ```bash

@@ -30,12 +30,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\VideoProcessing.VideoManagement.Application\VideoProcessing.VideoManagement.Application.csproj" />
-    <ProjectReference Include="..\..\src\VideoProcessing.VideoManagement.Domain\VideoProcessing.VideoManagement.Domain.csproj" />
-    <ProjectReference Include="..\..\src\VideoProcessing.VideoManagement.Infra.Data\VideoProcessing.VideoManagement.Infra.Data.csproj" />
-    <ProjectReference Include="..\..\src\VideoProcessing.VideoManagement.Infra.CrossCutting\VideoProcessing.VideoManagement.Infra.CrossCutting.csproj" />
-    <ProjectReference Include="..\..\src\VideoProcessing.VideoManagement.Api\VideoProcessing.VideoManagement.Api.csproj" />
-    <ProjectReference Include="..\..\src\VideoProcessing.VideoManagement.LambdaUpdateVideo\VideoProcessing.VideoManagement.LambdaUpdateVideo.csproj" />
+    <ProjectReference Include="..\..\src\Core\VideoProcessing.VideoManagement.Application\VideoProcessing.VideoManagement.Application.csproj" />
+    <ProjectReference Include="..\..\src\Core\VideoProcessing.VideoManagement.Domain\VideoProcessing.VideoManagement.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Infra\VideoProcessing.VideoManagement.Infra.Data\VideoProcessing.VideoManagement.Infra.Data.csproj" />
+    <ProjectReference Include="..\..\src\Infra\VideoProcessing.VideoManagement.Infra.CrossCutting\VideoProcessing.VideoManagement.Infra.CrossCutting.csproj" />
+    <ProjectReference Include="..\..\src\InterfacesExternas\VideoProcessing.VideoManagement.Api\VideoProcessing.VideoManagement.Api.csproj" />
+    <ProjectReference Include="..\..\src\InterfacesExternas\VideoProcessing.VideoManagement.LambdaUpdateVideo\VideoProcessing.VideoManagement.LambdaUpdateVideo.csproj" />
   </ItemGroup>
 
 </Project>

@@ -52,7 +52,7 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
         };
 
         var response = await dynamoDb.GetItemAsync(request, ct);
-        if (response.Item.Count == 0) return null;
+        if (response == null || response.Item == null || response.Item.Count == 0) return null;
 
         return VideoMapper.ToDomain(AttributeMapToEntity(response.Item));
     }

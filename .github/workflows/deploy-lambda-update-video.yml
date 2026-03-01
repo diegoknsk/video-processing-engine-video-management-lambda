@@ -30,7 +30,7 @@ jobs:
 
     - name: Publish Lambda Update Video
       run: |
-        dotnet publish src/VideoProcessing.VideoManagement.LambdaUpdateVideo/VideoProcessing.VideoManagement.LambdaUpdateVideo.csproj \
+        dotnet publish src/InterfacesExternas/VideoProcessing.VideoManagement.LambdaUpdateVideo/VideoProcessing.VideoManagement.LambdaUpdateVideo.csproj \
           --configuration Release \
           --output ./publish-update-video \
           --runtime linux-x64 \
