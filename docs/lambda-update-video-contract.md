@@ -21,7 +21,7 @@ O evento é um JSON com os seguintes campos (um único objeto de update):
 |------------------|--------|-------------|-----------|
 | `videoId`        | string (Guid) | Sim | Identificador do vídeo a atualizar. |
 | `userId`         | string (Guid) | Sim | Identificador do usuário dono do vídeo. |
-| `status`         | int    | Não | Status do processamento. Enum: Pending=0, Uploading=1, Processing=2, Completed=3, Failed=4, Cancelled=5. |
+| `status`         | int    | Não | Status do processamento. Enum: UploadPending=0, ProcessingImages=1, GeneratingZip=2, Completed=3, Failed=4, Cancelled=5. |
 | `progressPercent`| int    | Não | Percentual de progresso (0–100). |
 | `errorMessage`   | string | Não | Mensagem de erro em caso de falha. |
 | `errorCode`      | string | Não | Código de erro opcional. |
@@ -36,7 +36,7 @@ O evento é um JSON com os seguintes campos (um único objeto de update):
 - `userId` é obrigatório.
 - Pelo menos um campo de atualização (além de `userId`) deve ser informado: `status`, `progressPercent`, `errorMessage`, `errorCode`, `framesPrefix`, `s3KeyZip`, `s3BucketFrames`, `s3BucketZip` ou `stepExecutionArn`.
 - Quando informado, `progressPercent` deve estar entre 0 e 100.
-- Quando informado, `status` deve ser um valor válido do enum (0–5).
+- Quando informado, `status` deve ser um valor válido do enum (0–5). Valores: UploadPending=0, ProcessingImages=1, GeneratingZip=2, Completed=3, Failed=4, Cancelled=5.
 
 ### Invocação via SQS (produção)
 
@@ -77,7 +77,7 @@ Atributos atualizados conforme o patch: `status`, `progressPercent`, `errorMessa
 
 ## Resposta
 
-- **200:** sucesso; corpo inclui `statusCode: 200` e `video` (objeto com todos os campos do vídeo atualizado).
+- **200:** sucesso; corpo inclui `statusCode: 200` e `video` (objeto com todos os campos do vídeo atualizado, incluindo `status` e `statusDescription`).
 - **400:** validação falhou; `errorCode`, `errorMessage`.
 - **404:** vídeo não encontrado; `errorCode: "NotFound"`.
 - **409:** conflito (regressão de progresso, transição de status inválida, etc.); `errorCode: "UpdateConflict"`.
@@ -90,12 +90,12 @@ Campos estritamente necessários para um update válido: `videoId`, `userId` e p
 {
   "videoId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "userId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
-  "status": 2,
+  "status": 1,
   "progressPercent": 50
 }
 ```
 
-- `status`: 2 = Processing.  
+- `status`: 1 = ProcessingImages.  
 - `progressPercent`: 50 (0–100).
 
 ## Exemplo completo (todos os campos)
@@ -118,7 +118,7 @@ Todos os campos possíveis do payload, com valores coerentes com o domínio:
 }
 ```
 
-- `status`: 3 = Completed.  
+- `status`: 3 = Completed. O objeto `video` na resposta inclui também `statusDescription` (ex.: "Concluído") para exibição amigável.  
 - `progressPercent`: 100.  
 - Demais campos opcionais preenchidos conforme uso (S3, Step Functions).
 

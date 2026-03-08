@@ -40,6 +40,10 @@ public record VideoResponseModel
     [Description("Status do processamento")]
     public VideoStatus Status { get; init; }
 
+    /// <summary>Descrição amigável do status para exibição.</summary>
+    [Description("Descrição amigável do status")]
+    public string StatusDescription { get; init; } = string.Empty;
+
     /// <summary>Modo de processamento (SingleLambda ou FanOut).</summary>
     [Description("Modo de processamento")]
     public ProcessingMode ProcessingMode { get; init; }

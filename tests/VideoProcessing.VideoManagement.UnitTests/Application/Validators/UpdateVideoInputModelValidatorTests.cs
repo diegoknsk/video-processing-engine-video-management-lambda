@@ -15,7 +15,7 @@ public class UpdateVideoInputModelValidatorTests
         var input = new UpdateVideoInputModel
         {
             UserId = Guid.Empty,
-            Status = VideoStatus.Processing
+            Status = VideoStatus.ProcessingImages
         };
 
         var result = _validator.Validate(input);
@@ -44,7 +44,7 @@ public class UpdateVideoInputModelValidatorTests
         var input = new UpdateVideoInputModel
         {
             UserId = Guid.NewGuid(),
-            Status = VideoStatus.Processing
+            Status = VideoStatus.ProcessingImages
         };
 
         var result = _validator.Validate(input);

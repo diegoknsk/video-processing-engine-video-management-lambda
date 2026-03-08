@@ -24,7 +24,7 @@ public class VideoMapperTests
         entity.Pk.Should().Be($"USER#{userId}");
         entity.Sk.Should().Be($"VIDEO#{video.VideoId}");
         entity.VideoId.Should().Be(video.VideoId.ToString());
-        entity.Status.Should().Be("Pending");
+        entity.Status.Should().Be("UploadPending");
         entity.ClientRequestId.Should().Be("req-123");
         entity.StepExecutionArn.Should().Be("arn:aws:states:...");
     }
@@ -42,7 +42,7 @@ public class VideoMapperTests
             Sk = $"VIDEO#{videoId}",
             UserId = userId.ToString(),
             VideoId = videoId.ToString(),
-            Status = "Processing",
+            Status = "ProcessingImages",
             ProcessingMode = "FanOut",
             ProgressPercent = 50,
             CreatedAt = created.ToString("O"),
@@ -55,7 +55,7 @@ public class VideoMapperTests
         // Assert
         video.VideoId.Should().Be(videoId);
         video.UserId.Should().Be(userId);
-        video.Status.Should().Be(VideoStatus.Processing);
+        video.Status.Should().Be(VideoStatus.ProcessingImages);
         video.ProcessingMode.Should().Be(ProcessingMode.FanOut);
         video.ProgressPercent.Should().Be(50);
         video.CreatedAt.Should().Be(DateTime.Parse(entity.CreatedAt));

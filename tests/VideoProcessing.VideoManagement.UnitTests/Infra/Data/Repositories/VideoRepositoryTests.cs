@@ -71,7 +71,7 @@ public class VideoRepositoryTests
             ["originalFileName"] = new AttributeValue { S = "test.mp4" },
             ["contentType"] = new AttributeValue { S = "video/mp4" },
             ["sizeBytes"] = new AttributeValue { N = "1024" },
-            ["status"] = new AttributeValue { S = "Pending" },
+            ["status"] = new AttributeValue { S = "UploadPending" },
             ["processingMode"] = new AttributeValue { S = "SingleLambda" },
             ["progressPercent"] = new AttributeValue { N = "0" },
             ["createdAt"] = new AttributeValue { S = DateTime.UtcNow.ToString("O") }
@@ -112,7 +112,7 @@ public class VideoRepositoryTests
             ["originalFileName"] = new AttributeValue { S = "test.mp4" },
             ["contentType"] = new AttributeValue { S = "video/mp4" },
             ["sizeBytes"] = new AttributeValue { N = "1024" },
-            ["status"] = new AttributeValue { S = "Pending" },
+            ["status"] = new AttributeValue { S = "UploadPending" },
             ["processingMode"] = new AttributeValue { S = "SingleLambda" },
             ["progressPercent"] = new AttributeValue { N = "0" },
             ["createdAt"] = new AttributeValue { S = DateTime.UtcNow.ToString("O") }
@@ -158,7 +158,7 @@ public class VideoRepositoryTests
             ["originalFileName"] = new AttributeValue { S = "test.mp4" },
             ["contentType"] = new AttributeValue { S = "video/mp4" },
             ["sizeBytes"] = new AttributeValue { N = "1024" },
-            ["status"] = new AttributeValue { S = "Pending" },
+            ["status"] = new AttributeValue { S = "UploadPending" },
             ["processingMode"] = new AttributeValue { S = "SingleLambda" },
             ["progressPercent"] = new AttributeValue { N = "0" },
             ["createdAt"] = new AttributeValue { S = DateTime.UtcNow.ToString("O") }
@@ -208,7 +208,7 @@ public class VideoRepositoryTests
             ["originalFileName"] = new AttributeValue { S = "test.mp4" },
             ["contentType"] = new AttributeValue { S = "video/mp4" },
             ["sizeBytes"] = new AttributeValue { N = "1024" },
-            ["status"] = new AttributeValue { S = "Processing" },
+            ["status"] = new AttributeValue { S = "ProcessingImages" },
             ["processingMode"] = new AttributeValue { S = "SingleLambda" },
             ["progressPercent"] = new AttributeValue { N = "50" },
             ["createdAt"] = new AttributeValue { S = DateTime.UtcNow.ToString("O") },

@@ -105,6 +105,15 @@ Este conjunto de stories técnicas implementa a **Etapa 2 do Video Processing En
 
 ---
 
+### [Storie-15: Novo enum VideoStatus e statusDescription na API](./Storie-15-Enum_Status_Video_StatusDescription/story.md)
+**Objetivo:** (Registro retroativo.) Atualizar enum de status do vídeo para UploadPending, ProcessingImages, GeneratingZip, Completed, Failed, Cancelled; adicionar `statusDescription` ao model de saída; atualizar Lambda Update Video, contratos e testes.
+
+**Subtasks:** 2 (Enum + extensão descrição; ResponseModel, Lambda e testes)
+
+**Dependências:** Story 02, 06, 10
+
+---
+
 ## 🎯 Resumo Executivo
 
 ### Total de Stories: **10** (incl. 01.2, 08, 10 e 11)

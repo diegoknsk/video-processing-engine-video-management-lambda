@@ -26,7 +26,7 @@ public class UpdateVideoUseCaseTests
         var userId = Guid.NewGuid();
         var video = new Video(userId, "test.mp4", "video/mp4", 1024);
         var videoId = video.VideoId;
-        var patch = new VideoUpdateValues(VideoStatus.Processing, null, null, null, null, null, null, null, null);
+        var patch = new VideoUpdateValues(VideoStatus.ProcessingImages, null, null, null, null, null, null, null, null);
         var updatedVideo = Video.FromMerge(video, patch);
 
         _repositoryMock
@@ -36,15 +36,15 @@ public class UpdateVideoUseCaseTests
             .Setup(r => r.UpdateAsync(It.IsAny<Video>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(updatedVideo);
 
-        var input = new UpdateVideoInputModel { UserId = userId, Status = VideoStatus.Processing };
+        var input = new UpdateVideoInputModel { UserId = userId, Status = VideoStatus.ProcessingImages };
 
         var result = await _sut.ExecuteAsync(videoId, input, CancellationToken.None);
 
         result.Should().NotBeNull();
-        result!.Status.Should().Be(VideoStatus.Processing);
+        result!.Status.Should().Be(VideoStatus.ProcessingImages);
         result.VideoId.Should().Be(video.VideoId);
         _repositoryMock.Verify(r => r.GetByIdAsync(userId.ToString(), videoId.ToString(), It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(r => r.UpdateAsync(It.Is<Video>(v => v.Status == VideoStatus.Processing), It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(r => r.UpdateAsync(It.Is<Video>(v => v.Status == VideoStatus.ProcessingImages), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class UpdateVideoUseCaseTests
         var userId = Guid.NewGuid();
         var video = new Video(userId, "test.mp4", "video/mp4", 1024);
         var videoId = video.VideoId;
-        var patch = new VideoUpdateValues(VideoStatus.Processing, 75, "Erro de rede", "NETWORK_ERROR", null, null, null, null, null);
+        var patch = new VideoUpdateValues(VideoStatus.ProcessingImages, 75, "Erro de rede", "NETWORK_ERROR", null, null, null, null, null);
         var updatedVideo = Video.FromMerge(video, patch);
 
         _repositoryMock
@@ -91,7 +91,7 @@ public class UpdateVideoUseCaseTests
         var input = new UpdateVideoInputModel
         {
             UserId = userId,
-            Status = VideoStatus.Processing,
+            Status = VideoStatus.ProcessingImages,
             ProgressPercent = 75,
             ErrorMessage = "Erro de rede",
             ErrorCode = "NETWORK_ERROR"
@@ -100,13 +100,13 @@ public class UpdateVideoUseCaseTests
         var result = await _sut.ExecuteAsync(videoId, input, CancellationToken.None);
 
         result.Should().NotBeNull();
-        result!.Status.Should().Be(VideoStatus.Processing);
+        result!.Status.Should().Be(VideoStatus.ProcessingImages);
         result.ProgressPercent.Should().Be(75);
         result.ErrorMessage.Should().Be("Erro de rede");
         result.ErrorCode.Should().Be("NETWORK_ERROR");
         result.OriginalFileName.Should().Be("test.mp4");
         _repositoryMock.Verify(r => r.UpdateAsync(It.Is<Video>(v =>
-            v.Status == VideoStatus.Processing && v.ProgressPercent == 75 && v.ErrorMessage == "Erro de rede" && v.ErrorCode == "NETWORK_ERROR"), It.IsAny<CancellationToken>()), Times.Once);
+            v.Status == VideoStatus.ProcessingImages && v.ProgressPercent == 75 && v.ErrorMessage == "Erro de rede" && v.ErrorCode == "NETWORK_ERROR"), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public class UpdateVideoUseCaseTests
             .Setup(r => r.GetByIdAsync(userId.ToString(), videoId.ToString(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Video?)null);
 
-        var input = new UpdateVideoInputModel { UserId = userId, Status = VideoStatus.Processing };
+        var input = new UpdateVideoInputModel { UserId = userId, Status = VideoStatus.ProcessingImages };
 
         var result = await _sut.ExecuteAsync(videoId, input, CancellationToken.None);
 

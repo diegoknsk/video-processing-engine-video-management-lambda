@@ -19,7 +19,7 @@ public class UpdateVideoEventAdapterTests
     [Fact]
     public void FromRawEvent_SqsSingleRecordValidBody_ReturnsOneEvent()
     {
-        const string bodyPayload = """{"videoId":"3fa85f64-5717-4562-b3fc-2c963f66afa6","userId":"7c9e6679-7425-40de-944b-e07fc1f90ae7","status":2,"progressPercent":50}""";
+        const string bodyPayload = """{"videoId":"3fa85f64-5717-4562-b3fc-2c963f66afa6","userId":"7c9e6679-7425-40de-944b-e07fc1f90ae7","status":1,"progressPercent":50}""";
         string bodyEscaped = bodyPayload.Replace("\"", "\\\"");
         string sqsJson = $"{{\"Records\":[{{\"messageId\":\"msg-1\",\"body\":\"{bodyEscaped}\"}}]}}";
         using var doc = JsonDocument.Parse(sqsJson);
@@ -27,7 +27,7 @@ public class UpdateVideoEventAdapterTests
         result.Should().HaveCount(1);
         result[0].VideoId.Should().Be(Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6"));
         result[0].UserId.Should().Be(Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7"));
-        result[0].Status.Should().Be(VideoStatus.Processing);
+        result[0].Status.Should().Be(VideoStatus.ProcessingImages);
         result[0].ProgressPercent.Should().Be(50);
     }
 
@@ -58,9 +58,9 @@ public class UpdateVideoEventAdapterTests
         var result = _sut.FromRawEvent(doc);
         result.Should().HaveCount(2);
         result[0].VideoId.Should().Be(Guid.Parse("11111111-1111-1111-1111-111111111111"));
-        result[0].Status.Should().Be(VideoStatus.Pending);
+        result[0].Status.Should().Be(VideoStatus.UploadPending);
         result[1].VideoId.Should().Be(Guid.Parse("22222222-2222-2222-2222-222222222222"));
-        result[1].Status.Should().Be(VideoStatus.Uploading);
+        result[1].Status.Should().Be(VideoStatus.ProcessingImages);
     }
 
     [Fact]

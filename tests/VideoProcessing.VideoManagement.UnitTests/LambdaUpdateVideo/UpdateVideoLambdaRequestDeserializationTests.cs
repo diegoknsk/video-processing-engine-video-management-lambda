@@ -23,7 +23,7 @@ public class UpdateVideoLambdaEventDeserializationTests
             {
               "videoId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
               "userId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
-              "status": 2,
+              "status": 1,
               "progressPercent": 50
             }
             """;
@@ -31,7 +31,7 @@ public class UpdateVideoLambdaEventDeserializationTests
         result.Should().NotBeNull();
         result!.VideoId.Should().Be(Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6"));
         result.UserId.Should().Be(Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7"));
-        result.Status.Should().Be(VideoStatus.Processing);
+        result.Status.Should().Be(VideoStatus.ProcessingImages);
         result.ProgressPercent.Should().Be(50);
         result.ErrorMessage.Should().BeNull();
         result.FramesPrefix.Should().BeNull();

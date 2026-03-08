@@ -132,7 +132,7 @@ public class Video
         OriginalFileName = originalFileName;
         ContentType = contentType;
         SizeBytes = sizeBytes;
-        Status = VideoStatus.Pending;
+        Status = VideoStatus.UploadPending;
         ProcessingMode = ProcessingMode.SingleLambda;
         CreatedAt = DateTime.UtcNow;
         ClientRequestId = clientRequestId;

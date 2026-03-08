@@ -1,3 +1,4 @@
+using VideoProcessing.VideoManagement.Application.Extensions;
 using VideoProcessing.VideoManagement.Application.Models.ResponseModels;
 using VideoProcessing.VideoManagement.Domain.Entities;
 
@@ -21,6 +22,7 @@ public static class VideoResponseModelMapper
             DurationSec = video.DurationSec,
             FrameIntervalSec = video.FrameIntervalSec,
             Status = video.Status,
+            StatusDescription = video.Status.ToFriendlyName(),
             ProcessingMode = video.ProcessingMode,
             ProgressPercent = video.ProgressPercent,
             S3BucketVideo = video.S3BucketVideo,
