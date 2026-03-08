@@ -6,13 +6,16 @@ A Lambda **Update Video** é uma função AWS Lambda pura (handler .NET padrão,
 
 **Formas de invocação:**
 
-- **Invocação direta:** payload JSON com `videoId`, `userId` e campos opcionais de atualização.
-- **API Gateway (futuro):** body da requisição + `videoId` no path podem ser montados no mesmo event shape.
-- **SQS:** o body da mensagem pode ser o JSON do evento.
+A Lambda aceita dois formatos de evento, detectados automaticamente pelo adapter de entrada:
+
+1. **Invocação via SQS (produção):** o evento é o envelope SQS da AWS: `{ "Records": [ { "body": "<JSON do update>" } ] }`. O adapter extrai cada `body`, desserializa para o DTO de update e processa um evento por mensagem. O Step Function (ou outro produtor) envia para a fila SQS o mesmo JSON do DTO (`videoId`, `userId`, `status`, etc.).
+2. **Invocação direta (testes locais / Lambda Test Tool / execução manual):** o evento é o próprio JSON do DTO, sem envelope: `{ "videoId": "...", "userId": "...", "status": 2, ... }`. O adapter trata o payload como um único evento e processa normalmente.
 
 ## Event shape (entrada)
 
-O evento é um JSON com os seguintes campos:
+### Invocação direta (JSON do DTO)
+
+O evento é um JSON com os seguintes campos (um único objeto de update):
 
 | Campo             | Tipo   | Obrigatório | Descrição |
 |------------------|--------|-------------|-----------|
@@ -34,6 +37,34 @@ O evento é um JSON com os seguintes campos:
 - Pelo menos um campo de atualização (além de `userId`) deve ser informado: `status`, `progressPercent`, `errorMessage`, `errorCode`, `framesPrefix`, `s3KeyZip`, `s3BucketFrames`, `s3BucketZip` ou `stepExecutionArn`.
 - Quando informado, `progressPercent` deve estar entre 0 e 100.
 - Quando informado, `status` deve ser um valor válido do enum (0–5).
+
+### Invocação via SQS (produção)
+
+O evento é o envelope padrão SQS da AWS. Cada mensagem na fila deve ter no **body** o mesmo JSON do DTO de update (campos acima).
+
+**Exemplo de evento SQS completo (um record):**
+
+```json
+{
+  "Records": [
+    {
+      "messageId": "msg-id-123",
+      "receiptHandle": "...",
+      "body": "{\"videoId\":\"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\"userId\":\"7c9e6679-7425-40de-944b-e07fc1f90ae7\",\"status\":2,\"progressPercent\":50}",
+      "attributes": {},
+      "messageAttributes": {},
+      "md5OfBody": "...",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-east-1:123456789012:my-queue",
+      "awsRegion": "us-east-1"
+    }
+  ]
+}
+```
+
+O conteúdo de `body` é uma **string** contendo o JSON do DTO (videoId, userId, status, etc.). Em produção, o Step Function (ou outro produtor) publica na fila SQS uma mensagem cujo body é esse JSON.
+
+**Múltiplos records:** quando o evento contém mais de um item em `Records`, a Lambda processa cada um em ordem. Retorna a **primeira resposta de erro (4xx)** encontrada; se todos forem sucesso (200), retorna a **última resposta**. Assim, um record inválido falha o batch e permite retry pela SQS.
 
 ## Modelagem DynamoDB
 
@@ -93,10 +124,10 @@ Todos os campos possíveis do payload, com valores coerentes com o domínio:
 
 ## Uso em testes
 
-### AWS Lambda Console (test event)
+### AWS Lambda Console (test event) — invocação direta
 
 1. Crie um **test event** no console da função.
-2. Cole o **exemplo mínimo** ou **exemplo completo** no corpo do evento.
+2. Use o **JSON direto do DTO** (exemplo mínimo ou completo abaixo) como corpo do evento — **não** use o envelope SQS.
 3. Ajuste `videoId` e `userId` para registros existentes na tabela DynamoDB (se quiser testar persistência).
 4. Execute a função e verifique a resposta (200 com `video` ou 400/404/409 com `errorCode` e `errorMessage`).
 

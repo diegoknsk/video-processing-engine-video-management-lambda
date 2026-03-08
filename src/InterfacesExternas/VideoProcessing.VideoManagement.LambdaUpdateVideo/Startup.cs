@@ -38,6 +38,7 @@ public static class Startup
         services.AddSingleton<FluentValidation.IValidator<VideoProcessing.VideoManagement.Application.Models.InputModels.UpdateVideoInputModel>, UpdateVideoInputModelValidator>();
         services.AddSingleton<IUpdateVideoUseCase, UpdateVideoUseCase>();
         services.AddSingleton<IUpdateVideoHandler, UpdateVideoHandler>();
+        services.AddSingleton<IUpdateVideoEventAdapter, UpdateVideoEventAdapter>();
 
         return services.BuildServiceProvider();
     }
