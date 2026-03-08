@@ -1,15 +1,8 @@
-﻿using FluentValidation;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VideoProcessing.VideoManagement.Application.Models;
-using VideoProcessing.VideoManagement.Application.Models.InputModels;
 using VideoProcessing.VideoManagement.Application.Models.ResponseModels;
 using VideoProcessing.VideoManagement.Application.UseCases.GetVideoById;
-using VideoProcessing.VideoManagement.Application.UseCases.ListVideos;
-using VideoProcessing.VideoManagement.Application.UseCases.UpdateVideo;
-using VideoProcessing.VideoManagement.Application.UseCases.UploadVideo;
-using VideoProcessing.VideoManagement.Api.Models;
-using VideoProcessing.VideoManagement.Domain.Exceptions;
 
 
 namespace VideoProcessing.VideoManagement.Api.Controllers.Internal

@@ -59,6 +59,9 @@ public class UploadVideoUseCase(
         if (input.DurationSec.HasValue)
             video.SetDuration(input.DurationSec.Value);
 
+        if (input.FrameIntervalSec.HasValue)
+            video.SetFrameIntervalSec(input.FrameIntervalSec.Value);
+
         // Generate S3 Key: videos/{userId}/{videoId}/original
         var s3Key = $"videos/{userId}/{video.VideoId}/original";
         video.SetS3Source(_s3Options.BucketVideo, s3Key);

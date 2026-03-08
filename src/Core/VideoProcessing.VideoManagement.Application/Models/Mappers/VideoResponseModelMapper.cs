@@ -19,6 +19,7 @@ public static class VideoResponseModelMapper
             ContentType = video.ContentType,
             SizeBytes = video.SizeBytes,
             DurationSec = video.DurationSec,
+            FrameIntervalSec = video.FrameIntervalSec,
             Status = video.Status,
             ProcessingMode = video.ProcessingMode,
             ProgressPercent = video.ProgressPercent,

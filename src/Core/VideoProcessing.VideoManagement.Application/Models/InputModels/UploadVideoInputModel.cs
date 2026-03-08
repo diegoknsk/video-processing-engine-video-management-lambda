@@ -27,6 +27,10 @@ public record UploadVideoInputModel
     [Description("Duração do vídeo em segundos")]
     public double? DurationSec { get; init; }
 
+    /// <summary>Intervalo em segundos para captura de frames por outro microserviço (opcional). Quando informado junto com durationSec, não pode exceder 50% da duração.</summary>
+    [Description("Intervalo em segundos para captura de frames (opcional; se durationSec informado, máx. 50% da duração)")]
+    public double? FrameIntervalSec { get; init; }
+
     /// <summary>Identificador do cliente para idempotência (opcional). Se informado, requisições com o mesmo valor para o mesmo usuário retornam o mesmo videoId (evita duplicar em retries). Para cada novo vídeo/arquivo use um UUID diferente ou omita o campo; não use um valor fixo (ex.: userId) para todos os uploads, senão apenas um vídeo será criado.</summary>
     [Description("UUID por requisição de upload. Um valor = um vídeo por usuário. Para múltiplos vídeos: envie um ClientRequestId diferente por arquivo ou omita.")]
     public string? ClientRequestId { get; init; }

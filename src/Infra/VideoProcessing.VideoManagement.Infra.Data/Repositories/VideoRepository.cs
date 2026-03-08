@@ -210,6 +210,7 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
         };
 
         if (entity.DurationSec.HasValue) item["durationSec"] = new AttributeValue { N = entity.DurationSec.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) };
+        if (entity.FrameIntervalSec.HasValue) item["frameIntervalSec"] = new AttributeValue { N = entity.FrameIntervalSec.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) };
         if (!string.IsNullOrEmpty(entity.S3BucketVideo)) item["s3BucketVideo"] = new AttributeValue { S = entity.S3BucketVideo };
         if (!string.IsNullOrEmpty(entity.S3KeyVideo)) item["s3KeyVideo"] = new AttributeValue { S = entity.S3KeyVideo };
         if (!string.IsNullOrEmpty(entity.S3BucketZip)) item["s3BucketZip"] = new AttributeValue { S = entity.S3BucketZip };
@@ -239,7 +240,7 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
         string GetS(string key) => item.TryGetValue(key, out var v) ? v.S ?? "" : "";
         long GetN(string key) => item.TryGetValue(key, out var v) && v.N != null && long.TryParse(v.N, out var n) ? n : 0;
         int GetInt(string key) => item.TryGetValue(key, out var v) && v.N != null && int.TryParse(v.N, out var n) ? n : 0;
-        double GetD(string key) => item.TryGetValue(key, out var v) && v.N != null && double.TryParse(v.N, System.Globalization.NumberStyles.Any, null, out var d) ? d : 0;
+        double GetD(string key) => item.TryGetValue(key, out var v) && v.N != null && double.TryParse(v.N, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : 0;
 
         return new VideoEntity
         {
@@ -251,6 +252,7 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
             ContentType = GetS("contentType"),
             SizeBytes = GetN("sizeBytes"),
             DurationSec = item.TryGetValue("durationSec", out var dur) ? GetD("durationSec") : null,
+            FrameIntervalSec = item.TryGetValue("frameIntervalSec", out _) ? (double?)GetD("frameIntervalSec") : null,
             Status = GetS("status"),
             ProcessingMode = string.IsNullOrEmpty(GetS("processingMode")) ? "SingleLambda" : GetS("processingMode"),
             ProgressPercent = GetInt("progressPercent"),

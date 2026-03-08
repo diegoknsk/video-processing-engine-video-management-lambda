@@ -10,6 +10,7 @@ public class Video
     public string ContentType { get; private set; } = string.Empty;
     public long SizeBytes { get; private set; }
     public double? DurationSec { get; private set; }
+    public double? FrameIntervalSec { get; private set; }
     public VideoStatus Status { get; private set; }
     public ProcessingMode ProcessingMode { get; private set; }
     public int ProgressPercent { get; private set; }
@@ -50,6 +51,7 @@ public class Video
         ContentType = d.ContentType;
         SizeBytes = d.SizeBytes;
         DurationSec = d.DurationSec;
+        FrameIntervalSec = d.FrameIntervalSec;
         Status = d.Status;
         ProcessingMode = d.ProcessingMode;
         ProgressPercent = d.ProgressPercent;
@@ -90,6 +92,7 @@ public class Video
             ContentType: existing.ContentType,
             SizeBytes: existing.SizeBytes,
             DurationSec: existing.DurationSec,
+            FrameIntervalSec: existing.FrameIntervalSec,
             Status: patch.Status ?? existing.Status,
             ProcessingMode: existing.ProcessingMode,
             ProgressPercent: patch.ProgressPercent ?? existing.ProgressPercent,
@@ -177,6 +180,14 @@ public class Video
         if (durationSec <= 0)
             throw new ArgumentOutOfRangeException(nameof(durationSec), "DurationSec must be greater than 0.");
         DurationSec = durationSec;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void SetFrameIntervalSec(double frameIntervalSec)
+    {
+        if (frameIntervalSec <= 0)
+            throw new ArgumentOutOfRangeException(nameof(frameIntervalSec), "FrameIntervalSec must be greater than 0.");
+        FrameIntervalSec = frameIntervalSec;
         UpdatedAt = DateTime.UtcNow;
     }
 

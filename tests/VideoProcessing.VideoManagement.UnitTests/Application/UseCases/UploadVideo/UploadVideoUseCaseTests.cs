@@ -149,4 +149,37 @@ public class UploadVideoUseCaseTests
         var ex = await Assert.ThrowsAsync<Exception>(() => _useCase.ExecuteAsync(input, userId, CancellationToken.None));
         Assert.Equal("DB error", ex.Message);
     }
+
+    [Fact]
+    public async Task ExecuteAsync_WithFrameIntervalSec_ShouldPersistFrameIntervalSecOnVideo()
+    {
+        // Arrange
+        var input = new UploadVideoInputModel
+        {
+            OriginalFileName = "test.mp4",
+            ContentType = "video/mp4",
+            SizeKb = 1,
+            DurationSec = 60,
+            FrameIntervalSec = 30
+        };
+        var userId = Guid.NewGuid();
+        Video? capturedVideo = null;
+
+        _repositoryMock.Setup(r => r.GetByClientRequestIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Video?)null);
+
+        _repositoryMock.Setup(r => r.CreateAsync(It.IsAny<Video>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Callback<Video, string?, CancellationToken>((v, _, _) => capturedVideo = v)
+            .ReturnsAsync((Video v, string? _, CancellationToken _) => v);
+
+        _s3ServiceMock.Setup(s => s.GeneratePutPresignedUrl(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<string>()))
+            .Returns("https://s3.example.com/presigned");
+
+        // Act
+        await _useCase.ExecuteAsync(input, userId, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(capturedVideo);
+        Assert.Equal(30, capturedVideo.FrameIntervalSec);
+    }
 }

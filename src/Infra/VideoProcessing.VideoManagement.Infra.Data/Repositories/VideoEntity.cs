@@ -15,6 +15,7 @@ public class VideoEntity
     public string ContentType { get; set; } = string.Empty;
     public long SizeBytes { get; set; }
     public double? DurationSec { get; set; }
+    public double? FrameIntervalSec { get; set; }
     public string Status { get; set; } = string.Empty;
     public string ProcessingMode { get; set; } = string.Empty;
     public int ProgressPercent { get; set; }

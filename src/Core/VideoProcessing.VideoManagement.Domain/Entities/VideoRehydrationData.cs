@@ -12,6 +12,7 @@ internal record VideoRehydrationData(
     string ContentType,
     long SizeBytes,
     double? DurationSec,
+    double? FrameIntervalSec,
     VideoStatus Status,
     ProcessingMode ProcessingMode,
     int ProgressPercent,

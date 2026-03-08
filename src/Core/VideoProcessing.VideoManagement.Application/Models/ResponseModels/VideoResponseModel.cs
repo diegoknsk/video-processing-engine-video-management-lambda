@@ -32,6 +32,10 @@ public record VideoResponseModel
     [Description("Duração em segundos")]
     public double? DurationSec { get; init; }
 
+    /// <summary>Intervalo em segundos para captura de frames (outro microserviço).</summary>
+    [Description("Intervalo em segundos para captura de frames")]
+    public double? FrameIntervalSec { get; init; }
+
     /// <summary>Status do processamento.</summary>
     [Description("Status do processamento")]
     public VideoStatus Status { get; init; }

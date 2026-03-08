@@ -153,4 +153,89 @@ public class UploadVideoInputModelValidatorTests
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.ErrorMessage == "DurationSec must be greater than 0 if provided.");
     }
+
+    [Fact]
+    public void Validate_FrameIntervalSecValidWithDurationSec_ShouldPass()
+    {
+        var input = new UploadVideoInputModel
+        {
+            OriginalFileName = "video.mp4",
+            ContentType = "video/mp4",
+            SizeKb = 1,
+            DurationSec = 60,
+            FrameIntervalSec = 30
+        };
+
+        var result = _validator.Validate(input);
+
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_FrameIntervalSecExceeds50PercentOfDuration_ShouldFail()
+    {
+        var input = new UploadVideoInputModel
+        {
+            OriginalFileName = "video.mp4",
+            ContentType = "video/mp4",
+            SizeKb = 1,
+            DurationSec = 60,
+            FrameIntervalSec = 31
+        };
+
+        var result = _validator.Validate(input);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.ErrorMessage == "FrameIntervalSec cannot exceed 50% of the video duration.");
+    }
+
+    [Fact]
+    public void Validate_FrameIntervalSecZero_ShouldFail()
+    {
+        var input = new UploadVideoInputModel
+        {
+            OriginalFileName = "video.mp4",
+            ContentType = "video/mp4",
+            SizeKb = 1,
+            FrameIntervalSec = 0
+        };
+
+        var result = _validator.Validate(input);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.ErrorMessage == "FrameIntervalSec must be greater than 0 when provided.");
+    }
+
+    [Fact]
+    public void Validate_FrameIntervalSecNegative_ShouldFail()
+    {
+        var input = new UploadVideoInputModel
+        {
+            OriginalFileName = "video.mp4",
+            ContentType = "video/mp4",
+            SizeKb = 1,
+            FrameIntervalSec = -1
+        };
+
+        var result = _validator.Validate(input);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == "FrameIntervalSec");
+    }
+
+    [Fact]
+    public void Validate_FrameIntervalSecPresentWithoutDurationSec_ShouldPass()
+    {
+        var input = new UploadVideoInputModel
+        {
+            OriginalFileName = "video.mp4",
+            ContentType = "video/mp4",
+            SizeKb = 1,
+            FrameIntervalSec = 10
+        };
+
+        var result = _validator.Validate(input);
+
+        Assert.True(result.IsValid);
+    }
 }

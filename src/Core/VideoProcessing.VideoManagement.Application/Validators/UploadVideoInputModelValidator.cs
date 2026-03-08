@@ -33,7 +33,16 @@ public class UploadVideoInputModelValidator : AbstractValidator<UploadVideoInput
         RuleFor(x => x.DurationSec)
             .GreaterThan(0).When(x => x.DurationSec.HasValue)
             .WithMessage("DurationSec must be greater than 0 if provided.");
-            
+
+        RuleFor(x => x.FrameIntervalSec)
+            .GreaterThan(0).When(x => x.FrameIntervalSec.HasValue)
+            .WithMessage("FrameIntervalSec must be greater than 0 when provided.");
+
+        RuleFor(x => x.FrameIntervalSec)
+            .Must((model, value) => !value.HasValue || !model.DurationSec.HasValue || value.Value <= Math.Floor(model.DurationSec.Value * 0.5))
+            .When(x => x.FrameIntervalSec.HasValue && x.DurationSec.HasValue)
+            .WithMessage("FrameIntervalSec cannot exceed 50% of the video duration.");
+
         // ClientRequestId is optional but if provided must be a valid UUID
         RuleFor(x => x.ClientRequestId)
             .MaximumLength(100)
