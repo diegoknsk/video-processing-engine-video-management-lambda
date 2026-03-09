@@ -179,8 +179,8 @@ public class Video
     /// <summary>
     /// Aplica timestamps do pipeline conforme a transição de status (chamado por UpdateStatus ou pelo UseCase após merge).
     /// Regras: ProcessingStartedAt na primeira entrada em ProcessingImages (não sobrescreve); ImagesProcessingCompletedAt
-    /// em ProcessingImages→GeneratingZip (não sobrescreve); ProcessingCompletedAt em GeneratingZip→Completed (não sobrescreve);
-    /// LastFailedAt/LastCancelledAt sempre que entrar em Failed/Cancelled (podem ser sobrescritos).
+    /// na primeira entrada em GeneratingZip (não sobrescreve); ProcessingCompletedAt na primeira entrada em Completed
+    /// (não sobrescreve); LastFailedAt/LastCancelledAt sempre que entrar em Failed/Cancelled (podem ser sobrescritos).
     /// Retorna os nomes dos campos de timestamp que foram alterados para logging.
     /// </summary>
     public IReadOnlyList<string> ApplyTransitionTimestamps(VideoStatus previousStatus, VideoStatus newStatus)
@@ -194,15 +194,15 @@ public class Video
             updated.Add(nameof(ProcessingStartedAt));
         }
 
-        // 2. ImagesProcessingCompletedAt: conclusão da etapa de imagens (ProcessingImages → GeneratingZip); não sobrescrever
-        if (previousStatus == VideoStatus.ProcessingImages && newStatus == VideoStatus.GeneratingZip && !ImagesProcessingCompletedAt.HasValue)
+        // 2. ImagesProcessingCompletedAt: primeira vez que entra em GeneratingZip; não sobrescrever
+        if (newStatus == VideoStatus.GeneratingZip && !ImagesProcessingCompletedAt.HasValue)
         {
             ImagesProcessingCompletedAt = DateTime.UtcNow;
             updated.Add(nameof(ImagesProcessingCompletedAt));
         }
 
-        // 3. ProcessingCompletedAt: processamento completo (GeneratingZip → Completed); não sobrescrever
-        if (previousStatus == VideoStatus.GeneratingZip && newStatus == VideoStatus.Completed && !ProcessingCompletedAt.HasValue)
+        // 3. ProcessingCompletedAt: primeira vez que entra em Completed; não sobrescrever
+        if (newStatus == VideoStatus.Completed && !ProcessingCompletedAt.HasValue)
         {
             ProcessingCompletedAt = DateTime.UtcNow;
             updated.Add(nameof(ProcessingCompletedAt));

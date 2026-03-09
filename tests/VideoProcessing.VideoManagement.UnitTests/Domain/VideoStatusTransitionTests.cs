@@ -30,6 +30,24 @@ public class VideoStatusTransitionTests
     }
 
     [Fact]
+    public void UpdateStatus_UploadPendingToGeneratingZip_SetsImagesProcessingCompletedAt()
+    {
+        var video = new Video(Guid.NewGuid(), "test.mp4", "video/mp4", 1024);
+        video.UpdateStatus(VideoStatus.GeneratingZip);
+        video.ImagesProcessingCompletedAt.Should().NotBeNull();
+        video.ImagesProcessingCompletedAt!.Value.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));
+    }
+
+    [Fact]
+    public void UpdateStatus_UploadPendingToCompleted_SetsProcessingCompletedAt()
+    {
+        var video = new Video(Guid.NewGuid(), "test.mp4", "video/mp4", 1024);
+        video.UpdateStatus(VideoStatus.Completed);
+        video.ProcessingCompletedAt.Should().NotBeNull();
+        video.ProcessingCompletedAt!.Value.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));
+    }
+
+    [Fact]
     public void UpdateStatus_ToFailed_SetsLastFailedAt()
     {
         var video = new Video(Guid.NewGuid(), "test.mp4", "video/mp4", 1024);
