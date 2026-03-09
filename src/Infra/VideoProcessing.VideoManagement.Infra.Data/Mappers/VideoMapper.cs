@@ -62,7 +62,7 @@ public static class VideoMapper
             SizeBytes: entity.SizeBytes,
             DurationSec: entity.DurationSec,
             FrameIntervalSec: entity.FrameIntervalSec,
-            Status: Enum.Parse<VideoStatus>(entity.Status),
+            Status: ParseStatus(entity.Status),
             ProcessingMode: Enum.Parse<ProcessingMode>(entity.ProcessingMode),
             ProgressPercent: entity.ProgressPercent,
             S3BucketVideo: entity.S3BucketVideo,
@@ -90,4 +90,20 @@ public static class VideoMapper
 
     private static DateTime? ParseDateTime(string? value) =>
         string.IsNullOrEmpty(value) ? null : DateTime.Parse(value);
+
+    /// <summary>
+    /// Parseia o status persistido, aceitando valores legados (Pending, Uploading, Processing) para compatibilidade com dados já existentes no DynamoDB.
+    /// </summary>
+    private static VideoStatus ParseStatus(string value)
+    {
+        if (Enum.TryParse<VideoStatus>(value, ignoreCase: true, out var status))
+            return status;
+        return value switch
+        {
+            "Pending" => VideoStatus.UploadPending,
+            "Uploading" => VideoStatus.UploadPending,
+            "Processing" => VideoStatus.ProcessingImages,
+            _ => throw new ArgumentException($"Unknown or legacy status value: {value}.", nameof(value))
+        };
+    }
 }
