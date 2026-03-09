@@ -48,4 +48,16 @@ public record UpdateVideoInputModel
     /// <summary>ARN da execução Step Functions (se aplicável).</summary>
     [Description("ARN da execução Step Functions")]
     public string? StepExecutionArn { get; init; }
+
+    /// <summary>Máximo de chunks processados em paralelo (1–100).</summary>
+    [Description("Máximo de chunks em paralelo")]
+    public int? MaxParallelChunks { get; init; }
+
+    /// <summary>Data/hora de início do processamento.</summary>
+    [Description("Data/hora de início do processamento")]
+    public DateTime? ProcessingStartedAt { get; init; }
+
+    /// <summary>Resumo de processamento com chunks (merge incremental).</summary>
+    [Description("Resumo de processamento com chunks")]
+    public ProcessingSummaryInputModel? ProcessingSummary { get; init; }
 }

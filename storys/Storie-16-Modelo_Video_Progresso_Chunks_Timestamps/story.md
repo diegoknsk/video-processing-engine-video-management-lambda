@@ -55,6 +55,6 @@ Adicionar ao modelo de vídeo os campos de timestamps do pipeline (`processingSt
 - [ ] Testes unitários cobrindo: adição de chunk, chunk duplicado, tentativa de sobrescrever chunk existente, regressão de status, timestamps corretos, merge parcial sem sobrescrever `processingSummary`; `dotnet build` e `dotnet test` passando.
 
 ## Rastreamento (dev tracking)
-- **Início:** —
+- **Início:** 08/03/2026, às 21:30 (Brasília)
 - **Fim:** —
 - **Tempo total de desenvolvimento:** —

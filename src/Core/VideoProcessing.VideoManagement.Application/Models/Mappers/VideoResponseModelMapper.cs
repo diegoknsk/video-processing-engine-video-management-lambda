@@ -41,9 +41,32 @@ public static class VideoResponseModelMapper
             UploadUrlExpiresAt = video.UploadUrlExpiresAt,
             FramesProcessed = video.FramesProcessed,
             FinalizedAt = video.FinalizedAt,
+            MaxParallelChunks = video.MaxParallelChunks,
+            ProcessingSummary = video.ProcessingSummary is null ? null : ToProcessingSummaryResponse(video.ProcessingSummary),
+            ProcessingStartedAt = video.ProcessingStartedAt,
+            ImagesProcessingCompletedAt = video.ImagesProcessingCompletedAt,
+            ProcessingCompletedAt = video.ProcessingCompletedAt,
+            LastFailedAt = video.LastFailedAt,
+            LastCancelledAt = video.LastCancelledAt,
             CreatedAt = video.CreatedAt,
             UpdatedAt = video.UpdatedAt,
             Version = video.Version
         };
+    }
+
+    private static ProcessingSummaryResponseModel ToProcessingSummaryResponse(Domain.Entities.ProcessingSummary summary)
+    {
+        var chunks = summary.Chunks.ToDictionary(
+            kv => kv.Key,
+            kv => new ChunkInfoResponseModel
+            {
+                ChunkId = kv.Value.ChunkId,
+                StartSec = kv.Value.StartSec,
+                EndSec = kv.Value.EndSec,
+                IntervalSec = kv.Value.IntervalSec,
+                ManifestPrefix = kv.Value.ManifestPrefix,
+                FramesPrefix = kv.Value.FramesPrefix
+            });
+        return new ProcessingSummaryResponseModel { Chunks = chunks };
     }
 }

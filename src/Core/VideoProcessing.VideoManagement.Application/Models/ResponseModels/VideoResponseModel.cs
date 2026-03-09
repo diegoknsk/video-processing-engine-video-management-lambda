@@ -116,6 +116,34 @@ public record VideoResponseModel
     [Description("Data/hora de finalização")]
     public DateTime? FinalizedAt { get; init; }
 
+    /// <summary>Máximo de chunks em paralelo.</summary>
+    [Description("Máximo de chunks em paralelo")]
+    public int? MaxParallelChunks { get; init; }
+
+    /// <summary>Resumo de processamento com chunks.</summary>
+    [Description("Resumo de processamento")]
+    public ProcessingSummaryResponseModel? ProcessingSummary { get; init; }
+
+    /// <summary>Data/hora de início do processamento.</summary>
+    [Description("Início do processamento")]
+    public DateTime? ProcessingStartedAt { get; init; }
+
+    /// <summary>Data/hora de conclusão do processamento de imagens.</summary>
+    [Description("Conclusão do processamento de imagens")]
+    public DateTime? ImagesProcessingCompletedAt { get; init; }
+
+    /// <summary>Data/hora de conclusão do processamento.</summary>
+    [Description("Conclusão do processamento")]
+    public DateTime? ProcessingCompletedAt { get; init; }
+
+    /// <summary>Data/hora da última falha.</summary>
+    [Description("Última falha")]
+    public DateTime? LastFailedAt { get; init; }
+
+    /// <summary>Data/hora do último cancelamento.</summary>
+    [Description("Último cancelamento")]
+    public DateTime? LastCancelledAt { get; init; }
+
     /// <summary>Data de criação.</summary>
     [Description("Data de criação")]
     public DateTime CreatedAt { get; init; }

@@ -32,6 +32,13 @@ internal record VideoRehydrationData(
     DateTime? UploadUrlExpiresAt,
     int? FramesProcessed,
     DateTime? FinalizedAt,
+    int? MaxParallelChunks,
+    ProcessingSummary? ProcessingSummary,
+    DateTime? ProcessingStartedAt,
+    DateTime? ImagesProcessingCompletedAt,
+    DateTime? ProcessingCompletedAt,
+    DateTime? LastFailedAt,
+    DateTime? LastCancelledAt,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
     int? Version);

@@ -36,7 +36,16 @@ public class Video
     public DateTime? UploadUrlExpiresAt { get; private set; }
     public int? FramesProcessed { get; private set; }
     public DateTime? FinalizedAt { get; private set; }
-    
+    public int? MaxParallelChunks { get; private set; }
+    public ProcessingSummary? ProcessingSummary { get; private set; }
+
+    // Pipeline timestamps
+    public DateTime? ProcessingStartedAt { get; private set; }
+    public DateTime? ImagesProcessingCompletedAt { get; private set; }
+    public DateTime? ProcessingCompletedAt { get; private set; }
+    public DateTime? LastFailedAt { get; private set; }
+    public DateTime? LastCancelledAt { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
     public int? Version { get; private set; }
@@ -71,6 +80,13 @@ public class Video
         UploadUrlExpiresAt = d.UploadUrlExpiresAt;
         FramesProcessed = d.FramesProcessed;
         FinalizedAt = d.FinalizedAt;
+        MaxParallelChunks = d.MaxParallelChunks;
+        ProcessingSummary = d.ProcessingSummary;
+        ProcessingStartedAt = d.ProcessingStartedAt;
+        ImagesProcessingCompletedAt = d.ImagesProcessingCompletedAt;
+        ProcessingCompletedAt = d.ProcessingCompletedAt;
+        LastFailedAt = d.LastFailedAt;
+        LastCancelledAt = d.LastCancelledAt;
         CreatedAt = d.CreatedAt;
         UpdatedAt = d.UpdatedAt;
         Version = d.Version;
@@ -112,6 +128,13 @@ public class Video
             UploadUrlExpiresAt: existing.UploadUrlExpiresAt,
             FramesProcessed: existing.FramesProcessed,
             FinalizedAt: existing.FinalizedAt,
+            MaxParallelChunks: patch.MaxParallelChunks ?? existing.MaxParallelChunks,
+            ProcessingSummary: ProcessingSummary.Merge(existing.ProcessingSummary, patch.ProcessingSummary),
+            ProcessingStartedAt: patch.ProcessingStartedAt ?? existing.ProcessingStartedAt,
+            ImagesProcessingCompletedAt: existing.ImagesProcessingCompletedAt,
+            ProcessingCompletedAt: existing.ProcessingCompletedAt,
+            LastFailedAt: existing.LastFailedAt,
+            LastCancelledAt: existing.LastCancelledAt,
             CreatedAt: existing.CreatedAt,
             UpdatedAt: updatedAt,
             Version: existing.Version);
@@ -141,17 +164,31 @@ public class Video
 
     public void UpdateStatus(VideoStatus status)
     {
-        if (IsFinalState(Status) && !IsFinalState(status))
+        var previousStatus = Status;
+        if (IsFinalState(previousStatus) && !IsFinalState(status))
         {
-             // Allow retries or manual interventions? For now, let's strictly forbid reverting from final unless it's a specific flow.
-             // Actually, "Completed" -> "Processing" is definitely weird.
-             // "Failed" -> "Pending" (Retry) might be valid.
-             if (Status == VideoStatus.Completed)
-                 throw new InvalidOperationException($"Cannot transition from {Status} to {status}.");
+            if (previousStatus == VideoStatus.Completed)
+                throw new InvalidOperationException($"Cannot transition from {previousStatus} to {status}.");
         }
-            
+
         Status = status;
         UpdatedAt = DateTime.UtcNow;
+        ApplyTransitionTimestamps(previousStatus, status);
+    }
+
+    /// <summary>
+    /// Aplica timestamps do pipeline conforme a transição de status (chamado por UpdateStatus ou pelo UseCase após merge).
+    /// </summary>
+    public void ApplyTransitionTimestamps(VideoStatus previousStatus, VideoStatus newStatus)
+    {
+        if (previousStatus == VideoStatus.ProcessingImages && newStatus == VideoStatus.GeneratingZip)
+            ImagesProcessingCompletedAt = DateTime.UtcNow;
+        if (previousStatus == VideoStatus.GeneratingZip && newStatus == VideoStatus.Completed)
+            ProcessingCompletedAt = DateTime.UtcNow;
+        if (newStatus == VideoStatus.Failed)
+            LastFailedAt = DateTime.UtcNow;
+        if (newStatus == VideoStatus.Cancelled)
+            LastCancelledAt = DateTime.UtcNow;
     }
     
     private bool IsFinalState(VideoStatus status) => 
@@ -174,7 +211,15 @@ public class Video
         ChunkCount = chunkCount;
         UpdatedAt = DateTime.UtcNow;
     }
-    
+
+    public void SetMaxParallelChunks(int value)
+    {
+        if (value < 1 || value > 100)
+            throw new ArgumentOutOfRangeException(nameof(value), "MaxParallelChunks must be between 1 and 100.");
+        MaxParallelChunks = value;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void SetDuration(double durationSec)
     {
         if (durationSec <= 0)
@@ -218,6 +263,7 @@ public class Video
         Status = VideoStatus.Failed;
         ErrorMessage = errorMessage;
         ErrorCode = errorCode;
+        LastFailedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -225,6 +271,7 @@ public class Video
     {
         Status = VideoStatus.Completed;
         ProgressPercent = 100;
+        ProcessingCompletedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
 }

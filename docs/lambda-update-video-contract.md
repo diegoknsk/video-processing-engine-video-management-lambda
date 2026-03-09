@@ -1,5 +1,7 @@
 # Contrato da Lambda Update Video (VideoProcessing.VideoManagement.LambdaUpdateVideo)
 
+Para os contratos completos da API (POST criar vídeo, GET obter, PATCH atualizar) com exemplos, veja [api-video-contracts.md](api-video-contracts.md).
+
 ## Visão geral
 
 A Lambda **Update Video** é uma função AWS Lambda pura (handler .NET padrão, sem AddAWSLambdaHosting) que atualiza estado e metadados de um vídeo no DynamoDB. O contrato de entrada é o **mesmo do PATCH** do VideoManagement: **UpdateVideoInputModel** (Application) com `videoId` no evento. A Lambda reutiliza o mesmo **Use Case** (`IUpdateVideoUseCase`) e o mesmo **validator** (`UpdateVideoInputModelValidator`); a borda expõe apenas o tipo de evento **UpdateVideoLambdaEvent** (InputModel + videoId) e a resposta **UpdateVideoLambdaResponse**.
@@ -30,13 +32,21 @@ O evento é um JSON com os seguintes campos (um único objeto de update):
 | `s3BucketFrames` | string | Não | Bucket S3 dos frames. |
 | `s3BucketZip`    | string | Não | Bucket S3 do ZIP. |
 | `stepExecutionArn` | string | Não | ARN da execução Step Functions. |
+| `maxParallelChunks` | int | Não | Máximo de chunks processados em paralelo (1–100). |
+| `processingStartedAt` | string (ISO 8601) | Não | Data/hora de início do processamento. |
+| `processingSummary` | object | Não | Resumo de processamento com chunks (merge incremental). Ver estrutura abaixo. |
+
+**Estrutura de `processingSummary`:**
+- `chunks`: objeto com chaves = ChunkId e valor = objeto com: `chunkId`, `startSec`, `endSec`, `intervalSec`, `manifestPrefix`, `framesPrefix`. Cada chunk enviado é mergeado ao existente (idempotente: chunk já existente não é sobrescrito).
 
 **Regras de validação:**
 
 - `userId` é obrigatório.
-- Pelo menos um campo de atualização (além de `userId`) deve ser informado: `status`, `progressPercent`, `errorMessage`, `errorCode`, `framesPrefix`, `s3KeyZip`, `s3BucketFrames`, `s3BucketZip` ou `stepExecutionArn`.
+- Pelo menos um campo de atualização (além de `userId`) deve ser informado: `status`, `progressPercent`, `errorMessage`, `errorCode`, `framesPrefix`, `s3KeyZip`, `s3BucketFrames`, `s3BucketZip`, `stepExecutionArn`, `maxParallelChunks`, `processingStartedAt` ou `processingSummary.chunks` (com ao menos um chunk).
 - Quando informado, `progressPercent` deve estar entre 0 e 100.
 - Quando informado, `status` deve ser um valor válido do enum (0–5). Valores: UploadPending=0, ProcessingImages=1, GeneratingZip=2, Completed=3, Failed=4, Cancelled=5.
+- Quando informado, `maxParallelChunks` deve estar entre 1 e 100.
+- Quando `processingSummary.chunks` é informado: cada chunk deve ter `chunkId` não vazio, `startSec >= 0`, `endSec > startSec`, `intervalSec > 0`.
 
 ### Invocação via SQS (produção)
 
@@ -73,11 +83,11 @@ A Lambda utiliza a **mesma tabela** do VideoManagement:
 - **PK:** `USER#{userId}`
 - **SK:** `VIDEO#{videoId}`
 
-Atributos atualizados conforme o patch: `status`, `progressPercent`, `errorMessage`, `errorCode`, `framesPrefix`, `s3KeyZip`, `s3BucketZip`, `s3BucketFrames`, `updatedAt`. As mesmas condições do repositório (ownership, progressão monotônica, transições de status) são aplicadas.
+Atributos atualizados conforme o patch: `status`, `progressPercent`, `errorMessage`, `errorCode`, `framesPrefix`, `s3KeyZip`, `s3BucketZip`, `s3BucketFrames`, `maxParallelChunks`, `processingSummary` (JSON), `processingStartedAt`, `imagesProcessingCompletedAt`, `processingCompletedAt`, `lastFailedAt`, `lastCancelledAt`, `updatedAt`. As mesmas condições do repositório (ownership, progressão monotônica, transições de status) são aplicadas.
 
 ## Resposta
 
-- **200:** sucesso; corpo inclui `statusCode: 200` e `video` (objeto com todos os campos do vídeo atualizado, incluindo `status` e `statusDescription`).
+- **200:** sucesso; corpo inclui `statusCode: 200` e `video` (objeto com todos os campos do vídeo atualizado, incluindo `status`, `statusDescription`, `processingStartedAt`, `imagesProcessingCompletedAt`, `processingCompletedAt`, `lastFailedAt`, `lastCancelledAt`, `maxParallelChunks`, `processingSummary` quando aplicável).
 - **400:** validação falhou; `errorCode`, `errorMessage`.
 - **404:** vídeo não encontrado; `errorCode: "NotFound"`.
 - **409:** conflito (regressão de progresso, transição de status inválida, etc.); `errorCode: "UpdateConflict"`.
@@ -121,6 +131,31 @@ Todos os campos possíveis do payload, com valores coerentes com o domínio:
 - `status`: 3 = Completed. O objeto `video` na resposta inclui também `statusDescription` (ex.: "Concluído") para exibição amigável.  
 - `progressPercent`: 100.  
 - Demais campos opcionais preenchidos conforme uso (S3, Step Functions).
+
+## Exemplo com processingSummary (merge de chunks)
+
+```json
+{
+  "videoId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "userId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "maxParallelChunks": 4,
+  "processingStartedAt": "2026-03-08T21:00:00Z",
+  "processingSummary": {
+    "chunks": {
+      "chunk-0": {
+        "chunkId": "chunk-0",
+        "startSec": 0,
+        "endSec": 30,
+        "intervalSec": 1,
+        "manifestPrefix": "manifests/chunk-0/",
+        "framesPrefix": "frames/chunk-0/"
+      }
+    }
+  }
+}
+```
+
+- Os chunks em `processingSummary.chunks` são mergeados de forma incremental e idempotente: envios repetidos do mesmo `chunkId` não sobrescrevem o valor já persistido.
 
 ## Uso em testes
 

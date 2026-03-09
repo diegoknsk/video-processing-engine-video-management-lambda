@@ -62,6 +62,9 @@ public class UploadVideoUseCase(
         if (input.FrameIntervalSec.HasValue)
             video.SetFrameIntervalSec(input.FrameIntervalSec.Value);
 
+        if (input.MaxParallelChunks.HasValue)
+            video.SetMaxParallelChunks(input.MaxParallelChunks.Value);
+
         // Generate S3 Key: videos/{userId}/{videoId}/original
         var s3Key = $"videos/{userId}/{video.VideoId}/original";
         video.SetS3Source(_s3Options.BucketVideo, s3Key);

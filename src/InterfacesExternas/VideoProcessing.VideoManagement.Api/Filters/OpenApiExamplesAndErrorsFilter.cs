@@ -64,6 +64,7 @@ public sealed class OpenApiExamplesAndErrorsFilter : IOperationFilter
                 ["sizeKb"] = new OpenApiLong(51200),
                 ["durationSec"] = new OpenApiDouble(120.5),
                 ["frameIntervalSec"] = new OpenApiDouble(60),
+                ["maxParallelChunks"] = new OpenApiInteger(4),
                 ["clientRequestId"] = new OpenApiString("a1b2c3d4-e5f6-4789-a012-3456789abcde")
             };
         }

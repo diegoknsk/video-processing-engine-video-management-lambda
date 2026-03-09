@@ -38,6 +38,13 @@ public class VideoEntity
     public string? UploadUrlExpiresAt { get; set; }
     public int? FramesProcessed { get; set; }
     public string? FinalizedAt { get; set; }  // ISO 8601
+    public int? MaxParallelChunks { get; set; }
+    public string? ProcessingSummaryJson { get; set; }  // JSON do mapa de chunks para DynamoDB
+    public string? ProcessingStartedAt { get; set; }  // ISO 8601
+    public string? ImagesProcessingCompletedAt { get; set; }
+    public string? ProcessingCompletedAt { get; set; }
+    public string? LastFailedAt { get; set; }
+    public string? LastCancelledAt { get; set; }
 
     public string CreatedAt { get; set; } = string.Empty;  // ISO 8601
     public string? UpdatedAt { get; set; }

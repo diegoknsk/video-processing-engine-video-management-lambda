@@ -1,3 +1,4 @@
+using System.Text.Json;
 using VideoProcessing.VideoManagement.Domain.Entities;
 using VideoProcessing.VideoManagement.Domain.Enums;
 using VideoProcessing.VideoManagement.Infra.Data.Repositories;
@@ -6,6 +7,7 @@ namespace VideoProcessing.VideoManagement.Infra.Data.Mappers;
 
 public static class VideoMapper
 {
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
     public static VideoEntity ToEntity(Video video, string? clientRequestId = null)
     {
         var entity = new VideoEntity
@@ -38,6 +40,13 @@ public static class VideoMapper
             UploadUrlExpiresAt = video.UploadUrlExpiresAt?.ToString("O"),
             FramesProcessed = video.FramesProcessed,
             FinalizedAt = video.FinalizedAt?.ToString("O"),
+            MaxParallelChunks = video.MaxParallelChunks,
+            ProcessingSummaryJson = video.ProcessingSummary is null ? null : JsonSerializer.Serialize(video.ProcessingSummary.Chunks, JsonOptions),
+            ProcessingStartedAt = video.ProcessingStartedAt?.ToString("O"),
+            ImagesProcessingCompletedAt = video.ImagesProcessingCompletedAt?.ToString("O"),
+            ProcessingCompletedAt = video.ProcessingCompletedAt?.ToString("O"),
+            LastFailedAt = video.LastFailedAt?.ToString("O"),
+            LastCancelledAt = video.LastCancelledAt?.ToString("O"),
             CreatedAt = video.CreatedAt.ToString("O"),
             UpdatedAt = video.UpdatedAt?.ToString("O"),
             Version = video.Version
@@ -81,6 +90,13 @@ public static class VideoMapper
             UploadUrlExpiresAt: ParseDateTime(entity.UploadUrlExpiresAt),
             FramesProcessed: entity.FramesProcessed,
             FinalizedAt: ParseDateTime(entity.FinalizedAt),
+            MaxParallelChunks: entity.MaxParallelChunks,
+            ProcessingSummary: ParseProcessingSummary(entity.ProcessingSummaryJson),
+            ProcessingStartedAt: ParseDateTime(entity.ProcessingStartedAt),
+            ImagesProcessingCompletedAt: ParseDateTime(entity.ImagesProcessingCompletedAt),
+            ProcessingCompletedAt: ParseDateTime(entity.ProcessingCompletedAt),
+            LastFailedAt: ParseDateTime(entity.LastFailedAt),
+            LastCancelledAt: ParseDateTime(entity.LastCancelledAt),
             CreatedAt: DateTime.Parse(entity.CreatedAt),
             UpdatedAt: ParseDateTime(entity.UpdatedAt),
             Version: entity.Version);
@@ -90,6 +106,21 @@ public static class VideoMapper
 
     private static DateTime? ParseDateTime(string? value) =>
         string.IsNullOrEmpty(value) ? null : DateTime.Parse(value);
+
+    private static ProcessingSummary? ParseProcessingSummary(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return null;
+        try
+        {
+            var chunks = JsonSerializer.Deserialize<Dictionary<string, ChunkInfo>>(json, JsonOptions);
+            return chunks is null || chunks.Count == 0 ? null : new ProcessingSummary(chunks);
+        }
+        catch
+        {
+            return null;
+        }
+    }
 
     /// <summary>
     /// Parseia o status persistido, aceitando valores legados (Pending, Uploading, Processing) para compatibilidade com dados já existentes no DynamoDB.

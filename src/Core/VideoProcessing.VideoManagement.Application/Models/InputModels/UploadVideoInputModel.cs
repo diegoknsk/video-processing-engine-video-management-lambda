@@ -31,6 +31,10 @@ public record UploadVideoInputModel
     [Description("Intervalo em segundos para captura de frames (opcional; se durationSec informado, máx. 50% da duração)")]
     public double? FrameIntervalSec { get; init; }
 
+    /// <summary>Máximo de chunks processados em paralelo para este vídeo (1–100). Opcional; quando informado, o orquestrador usa esse limite.</summary>
+    [Description("Máximo de chunks em paralelo (1–100)")]
+    public int? MaxParallelChunks { get; init; }
+
     /// <summary>Identificador do cliente para idempotência (opcional). Se informado, requisições com o mesmo valor para o mesmo usuário retornam o mesmo videoId (evita duplicar em retries). Para cada novo vídeo/arquivo use um UUID diferente ou omita o campo; não use um valor fixo (ex.: userId) para todos os uploads, senão apenas um vídeo será criado.</summary>
     [Description("UUID por requisição de upload. Um valor = um vídeo por usuário. Para múltiplos vídeos: envie um ClientRequestId diferente por arquivo ou omita.")]
     public string? ClientRequestId { get; init; }

@@ -43,6 +43,10 @@ public class UploadVideoInputModelValidator : AbstractValidator<UploadVideoInput
             .When(x => x.FrameIntervalSec.HasValue && x.DurationSec.HasValue)
             .WithMessage("FrameIntervalSec cannot exceed 50% of the video duration.");
 
+        RuleFor(x => x.MaxParallelChunks)
+            .InclusiveBetween(1, 100).When(x => x.MaxParallelChunks.HasValue)
+            .WithMessage("MaxParallelChunks must be between 1 and 100 when provided.");
+
         // ClientRequestId is optional but if provided must be a valid UUID
         RuleFor(x => x.ClientRequestId)
             .MaximumLength(100)
