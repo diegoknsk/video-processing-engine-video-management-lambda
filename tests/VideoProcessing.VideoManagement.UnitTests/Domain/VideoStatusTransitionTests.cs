@@ -49,10 +49,12 @@ public class VideoStatusTransitionTests
     }
 
     [Fact]
-    public void UpdateStatus_UploadPendingToProcessingImages_NoTransitionTimestamps()
+    public void UpdateStatus_UploadPendingToProcessingImages_SetsProcessingStartedAt()
     {
         var video = new Video(Guid.NewGuid(), "test.mp4", "video/mp4", 1024);
         video.UpdateStatus(VideoStatus.ProcessingImages);
+        video.ProcessingStartedAt.Should().NotBeNull();
+        video.ProcessingStartedAt!.Value.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));
         video.ImagesProcessingCompletedAt.Should().BeNull();
         video.ProcessingCompletedAt.Should().BeNull();
         video.LastFailedAt.Should().BeNull();

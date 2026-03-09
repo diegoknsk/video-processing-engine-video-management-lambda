@@ -172,7 +172,7 @@ public class UpdateVideoUseCaseTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Video status changed")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Video status transition")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -195,7 +195,7 @@ public class UpdateVideoUseCaseTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Video status changed")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Video status transition")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Never);

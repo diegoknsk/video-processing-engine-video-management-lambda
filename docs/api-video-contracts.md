@@ -17,7 +17,7 @@ Registra um novo vídeo e retorna uma URL pré-assinada para upload no S3. Reque
 | `sizeKb`           | long   | Sim         | Tamanho do arquivo em **quilobytes** (KB). |
 | `durationSec`      | double | Não         | Duração do vídeo em segundos. |
 | `frameIntervalSec` | double | Não         | Intervalo em segundos para captura de frames (uso pelo processador). |
-| `maxParallelChunks` | int   | Não         | Máximo de chunks processados em paralelo (1–100). Opcional. |
+| `maxParallelChunks` | int   | Não         | Máximo de chunks em paralelo (1–100). Se omitido, **default 1**. |
 | `clientRequestId`  | string | Não         | UUID para idempotência; mesmo valor + mesmo usuário = mesmo vídeo. |
 
 ### Exemplo de request (seu payload)
@@ -36,7 +36,7 @@ Registra um novo vídeo e retorna uma URL pré-assinada para upload no S3. Reque
 - `sizeKb`: 463000 KB ≈ 452 MB.  
 - `durationSec`: 248 s.  
 - `frameIntervalSec`: 5 s (um frame a cada 5 segundos).  
-- `maxParallelChunks`: 4 (opcional; limite de chunks em paralelo para este vídeo).
+- `maxParallelChunks`: 4 (opcional; se omitido, usa **1**).
 
 ### Resposta 201 Created
 
@@ -104,12 +104,25 @@ Campos que podem vir preenchidos após criação e ao longo do processamento:
 
 **Campos novos (Story 16):**
 
-- `maxParallelChunks`: máximo de chunks processados em paralelo (1–100).  
+- `maxParallelChunks`: máximo de chunks em paralelo (1–100). No POST, se omitido, **default 1**.  
 - `processingSummary`: resumo com chunks (merge incremental); formato abaixo.  
-- `processingStartedAt`, `imagesProcessingCompletedAt`, `processingCompletedAt`: timestamps do pipeline.  
-- `lastFailedAt`, `lastCancelledAt`: última falha/cancelamento.
+- Timestamps do pipeline: `processingStartedAt`, `imagesProcessingCompletedAt`, `processingCompletedAt`, `lastFailedAt`, `lastCancelledAt` (ver tabela abaixo).
 
 **Status (enum):** 0=UploadPending, 1=ProcessingImages, 2=GeneratingZip, 3=Completed, 4=Failed, 5=Cancelled.
+
+### Quando os campos de pipeline são preenchidos e persistência (DynamoDB)
+
+Todos os campos abaixo são **persistidos no DynamoDB** (Create e Update). Quando cada um é preenchido:
+
+| Campo | Quando é preenchido | Persistido no DynamoDB |
+|-------|---------------------|-------------------------|
+| `maxParallelChunks` | **POST (criar):** valor enviado ou **default 1** se omitido. **PATCH:** valor enviado (opcional). | Sim (atributo `maxParallelChunks`) |
+| `processingStartedAt` | **PATCH:** quando o orquestrador envia `processingStartedAt` no body. | Sim (atributo `processingStartedAt`, ISO 8601) |
+| `imagesProcessingCompletedAt` | **Automático:** na transição de status `ProcessingImages` → `GeneratingZip` (via PATCH com `status`). | Sim (atributo `imagesProcessingCompletedAt`) |
+| `processingCompletedAt` | **Automático:** na transição `GeneratingZip` → `Completed` ou ao chamar `MarkAsCompleted`. | Sim (atributo `processingCompletedAt`) |
+| `lastFailedAt` | **Automático:** ao entrar em status `Failed` (PATCH com `status: 4` ou `MarkAsFailed`). | Sim (atributo `lastFailedAt`) |
+| `lastCancelledAt` | **Automático:** ao entrar em status `Cancelled` (PATCH com `status: 5`). | Sim (atributo `lastCancelledAt`) |
+| `processingSummary` | **PATCH:** quando o body envia `processingSummary.chunks` (merge incremental, idempotente). | Sim (atributo `processingSummary`, JSON) |
 
 **Formato de `processingSummary` (quando preenchido):**
 
@@ -209,7 +222,7 @@ A resposta **200** do PATCH traz o objeto `video` completo (mesmo formato do GET
 
 | Operação | Contrato |
 |----------|----------|
-| **POST /videos** | `originalFileName`, `contentType`, `sizeKb`, `durationSec`, `frameIntervalSec`, `maxParallelChunks` (1–100, opcional). Resposta: `videoId`, `uploadUrl`, `expiresAt`. |
+| **POST /videos** | `originalFileName`, `contentType`, `sizeKb`, `durationSec`, `frameIntervalSec`, `maxParallelChunks` (1–100, opcional; **default 1**). Resposta: `videoId`, `uploadUrl`, `expiresAt`. |
 | **GET /videos/{id}** | Inclui os novos campos: `maxParallelChunks`, `processingSummary`, `processingStartedAt`, `imagesProcessingCompletedAt`, `processingCompletedAt`, `lastFailedAt`, `lastCancelledAt`. |
 | **PATCH /videos/{id}** | Pode enviar `maxParallelChunks`, `processingStartedAt`, `processingSummary`; a resposta traz o vídeo no mesmo formato do GET. |
 

@@ -178,17 +178,51 @@ public class Video
 
     /// <summary>
     /// Aplica timestamps do pipeline conforme a transição de status (chamado por UpdateStatus ou pelo UseCase após merge).
+    /// Regras: ProcessingStartedAt na primeira entrada em ProcessingImages (não sobrescreve); ImagesProcessingCompletedAt
+    /// em ProcessingImages→GeneratingZip (não sobrescreve); ProcessingCompletedAt em GeneratingZip→Completed (não sobrescreve);
+    /// LastFailedAt/LastCancelledAt sempre que entrar em Failed/Cancelled (podem ser sobrescritos).
+    /// Retorna os nomes dos campos de timestamp que foram alterados para logging.
     /// </summary>
-    public void ApplyTransitionTimestamps(VideoStatus previousStatus, VideoStatus newStatus)
+    public IReadOnlyList<string> ApplyTransitionTimestamps(VideoStatus previousStatus, VideoStatus newStatus)
     {
-        if (previousStatus == VideoStatus.ProcessingImages && newStatus == VideoStatus.GeneratingZip)
+        var updated = new List<string>();
+
+        // 1. ProcessingStartedAt: primeira vez que entra em ProcessingImages; não sobrescrever
+        if (newStatus == VideoStatus.ProcessingImages && !ProcessingStartedAt.HasValue)
+        {
+            ProcessingStartedAt = DateTime.UtcNow;
+            updated.Add(nameof(ProcessingStartedAt));
+        }
+
+        // 2. ImagesProcessingCompletedAt: conclusão da etapa de imagens (ProcessingImages → GeneratingZip); não sobrescrever
+        if (previousStatus == VideoStatus.ProcessingImages && newStatus == VideoStatus.GeneratingZip && !ImagesProcessingCompletedAt.HasValue)
+        {
             ImagesProcessingCompletedAt = DateTime.UtcNow;
-        if (previousStatus == VideoStatus.GeneratingZip && newStatus == VideoStatus.Completed)
+            updated.Add(nameof(ImagesProcessingCompletedAt));
+        }
+
+        // 3. ProcessingCompletedAt: processamento completo (GeneratingZip → Completed); não sobrescrever
+        if (previousStatus == VideoStatus.GeneratingZip && newStatus == VideoStatus.Completed && !ProcessingCompletedAt.HasValue)
+        {
             ProcessingCompletedAt = DateTime.UtcNow;
+            updated.Add(nameof(ProcessingCompletedAt));
+        }
+
+        // 4. LastFailedAt: sempre que entrar em Failed; pode ser sobrescrito
         if (newStatus == VideoStatus.Failed)
+        {
             LastFailedAt = DateTime.UtcNow;
+            updated.Add(nameof(LastFailedAt));
+        }
+
+        // 5. LastCancelledAt: sempre que entrar em Cancelled; pode ser sobrescrito
         if (newStatus == VideoStatus.Cancelled)
+        {
             LastCancelledAt = DateTime.UtcNow;
+            updated.Add(nameof(LastCancelledAt));
+        }
+
+        return updated;
     }
     
     private bool IsFinalState(VideoStatus status) => 
@@ -271,7 +305,8 @@ public class Video
     {
         Status = VideoStatus.Completed;
         ProgressPercent = 100;
-        ProcessingCompletedAt = DateTime.UtcNow;
+        if (!ProcessingCompletedAt.HasValue)
+            ProcessingCompletedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
 }

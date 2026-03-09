@@ -32,9 +32,13 @@ public class UpdateVideoUseCase(IVideoRepository repository, ILogger<UpdateVideo
         var merged = Video.FromMerge(video, patch);
         if (patch.Status is { } newStatus && newStatus != video.Status)
         {
-            merged.ApplyTransitionTimestamps(video.Status, newStatus);
-            logger.LogInformation("Video status changed — {@StatusChange}",
-                new { VideoId = videoId, PreviousStatus = video.Status.ToString(), NewStatus = newStatus.ToString() });
+            var timestampFieldsUpdated = merged.ApplyTransitionTimestamps(video.Status, newStatus);
+            logger.LogInformation(
+                "Video status transition — VideoId: {VideoId}, PreviousStatus: {PreviousStatus}, NewStatus: {NewStatus}, TimestampFieldsUpdated: {TimestampFieldsUpdated}",
+                videoId,
+                video.Status.ToString(),
+                newStatus.ToString(),
+                timestampFieldsUpdated.Count > 0 ? string.Join(", ", timestampFieldsUpdated) : "(none)");
         }
 
         var updated = await repository.UpdateAsync(merged, ct);
