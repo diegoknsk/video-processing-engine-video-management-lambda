@@ -32,9 +32,17 @@ public record VideoResponseModel
     [Description("Duração em segundos")]
     public double? DurationSec { get; init; }
 
+    /// <summary>Intervalo em segundos para captura de frames (outro microserviço).</summary>
+    [Description("Intervalo em segundos para captura de frames")]
+    public double? FrameIntervalSec { get; init; }
+
     /// <summary>Status do processamento.</summary>
     [Description("Status do processamento")]
     public VideoStatus Status { get; init; }
+
+    /// <summary>Descrição amigável do status para exibição.</summary>
+    [Description("Descrição amigável do status")]
+    public string StatusDescription { get; init; } = string.Empty;
 
     /// <summary>Modo de processamento (SingleLambda ou FanOut).</summary>
     [Description("Modo de processamento")]
@@ -107,6 +115,34 @@ public record VideoResponseModel
     /// <summary>Data/hora de finalização.</summary>
     [Description("Data/hora de finalização")]
     public DateTime? FinalizedAt { get; init; }
+
+    /// <summary>Máximo de chunks em paralelo.</summary>
+    [Description("Máximo de chunks em paralelo")]
+    public int? MaxParallelChunks { get; init; }
+
+    /// <summary>Resumo de processamento com chunks.</summary>
+    [Description("Resumo de processamento")]
+    public ProcessingSummaryResponseModel? ProcessingSummary { get; init; }
+
+    /// <summary>Data/hora de início do processamento.</summary>
+    [Description("Início do processamento")]
+    public DateTime? ProcessingStartedAt { get; init; }
+
+    /// <summary>Data/hora de conclusão do processamento de imagens.</summary>
+    [Description("Conclusão do processamento de imagens")]
+    public DateTime? ImagesProcessingCompletedAt { get; init; }
+
+    /// <summary>Data/hora de conclusão do processamento.</summary>
+    [Description("Conclusão do processamento")]
+    public DateTime? ProcessingCompletedAt { get; init; }
+
+    /// <summary>Data/hora da última falha.</summary>
+    [Description("Última falha")]
+    public DateTime? LastFailedAt { get; init; }
+
+    /// <summary>Data/hora do último cancelamento.</summary>
+    [Description("Último cancelamento")]
+    public DateTime? LastCancelledAt { get; init; }
 
     /// <summary>Data de criação.</summary>
     [Description("Data de criação")]

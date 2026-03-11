@@ -14,4 +14,7 @@ public record VideoUpdateValues(
     string? S3KeyZip,
     string? S3BucketFrames,
     string? S3BucketZip,
-    string? StepExecutionArn);
+    string? StepExecutionArn,
+    int? MaxParallelChunks,
+    DateTime? ProcessingStartedAt,
+    ProcessingSummary? ProcessingSummary);

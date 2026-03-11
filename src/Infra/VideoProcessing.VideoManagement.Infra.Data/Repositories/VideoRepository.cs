@@ -142,6 +142,43 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
             updateExpr += ", framesPrefix = :framesPrefix";
             attrValues[":framesPrefix"] = new AttributeValue { S = video.FramesPrefix };
         }
+        if (video.MaxParallelChunks.HasValue)
+        {
+            updateExpr += ", maxParallelChunks = :maxParallelChunks";
+            attrValues[":maxParallelChunks"] = new AttributeValue { N = video.MaxParallelChunks.Value.ToString() };
+        }
+        if (video.ProcessingSummary != null)
+        {
+            var summaryJson = System.Text.Json.JsonSerializer.Serialize(video.ProcessingSummary.Chunks);
+            updateExpr += ", #processingSummary = :processingSummary";
+            attrNames["#processingSummary"] = "processingSummary";
+            attrValues[":processingSummary"] = new AttributeValue { S = summaryJson };
+        }
+        if (video.ProcessingStartedAt.HasValue)
+        {
+            updateExpr += ", processingStartedAt = :processingStartedAt";
+            attrValues[":processingStartedAt"] = new AttributeValue { S = video.ProcessingStartedAt.Value.ToString("O") };
+        }
+        if (video.ImagesProcessingCompletedAt.HasValue)
+        {
+            updateExpr += ", imagesProcessingCompletedAt = :imagesProcessingCompletedAt";
+            attrValues[":imagesProcessingCompletedAt"] = new AttributeValue { S = video.ImagesProcessingCompletedAt.Value.ToString("O") };
+        }
+        if (video.ProcessingCompletedAt.HasValue)
+        {
+            updateExpr += ", processingCompletedAt = :processingCompletedAt";
+            attrValues[":processingCompletedAt"] = new AttributeValue { S = video.ProcessingCompletedAt.Value.ToString("O") };
+        }
+        if (video.LastFailedAt.HasValue)
+        {
+            updateExpr += ", lastFailedAt = :lastFailedAt";
+            attrValues[":lastFailedAt"] = new AttributeValue { S = video.LastFailedAt.Value.ToString("O") };
+        }
+        if (video.LastCancelledAt.HasValue)
+        {
+            updateExpr += ", lastCancelledAt = :lastCancelledAt";
+            attrValues[":lastCancelledAt"] = new AttributeValue { S = video.LastCancelledAt.Value.ToString("O") };
+        }
 
         var request = new UpdateItemRequest
         {
@@ -210,6 +247,7 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
         };
 
         if (entity.DurationSec.HasValue) item["durationSec"] = new AttributeValue { N = entity.DurationSec.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) };
+        if (entity.FrameIntervalSec.HasValue) item["frameIntervalSec"] = new AttributeValue { N = entity.FrameIntervalSec.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) };
         if (!string.IsNullOrEmpty(entity.S3BucketVideo)) item["s3BucketVideo"] = new AttributeValue { S = entity.S3BucketVideo };
         if (!string.IsNullOrEmpty(entity.S3KeyVideo)) item["s3KeyVideo"] = new AttributeValue { S = entity.S3KeyVideo };
         if (!string.IsNullOrEmpty(entity.S3BucketZip)) item["s3BucketZip"] = new AttributeValue { S = entity.S3BucketZip };
@@ -226,6 +264,13 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
         if (!string.IsNullOrEmpty(entity.UploadUrlExpiresAt)) item["uploadUrlExpiresAt"] = new AttributeValue { S = entity.UploadUrlExpiresAt };
         if (entity.FramesProcessed.HasValue) item["framesProcessed"] = new AttributeValue { N = entity.FramesProcessed.Value.ToString() };
         if (!string.IsNullOrEmpty(entity.FinalizedAt)) item["finalizedAt"] = new AttributeValue { S = entity.FinalizedAt };
+        if (entity.MaxParallelChunks.HasValue) item["maxParallelChunks"] = new AttributeValue { N = entity.MaxParallelChunks.Value.ToString() };
+        if (!string.IsNullOrEmpty(entity.ProcessingSummaryJson)) item["processingSummary"] = new AttributeValue { S = entity.ProcessingSummaryJson };
+        if (!string.IsNullOrEmpty(entity.ProcessingStartedAt)) item["processingStartedAt"] = new AttributeValue { S = entity.ProcessingStartedAt };
+        if (!string.IsNullOrEmpty(entity.ImagesProcessingCompletedAt)) item["imagesProcessingCompletedAt"] = new AttributeValue { S = entity.ImagesProcessingCompletedAt };
+        if (!string.IsNullOrEmpty(entity.ProcessingCompletedAt)) item["processingCompletedAt"] = new AttributeValue { S = entity.ProcessingCompletedAt };
+        if (!string.IsNullOrEmpty(entity.LastFailedAt)) item["lastFailedAt"] = new AttributeValue { S = entity.LastFailedAt };
+        if (!string.IsNullOrEmpty(entity.LastCancelledAt)) item["lastCancelledAt"] = new AttributeValue { S = entity.LastCancelledAt };
         if (!string.IsNullOrEmpty(entity.UpdatedAt)) item["updatedAt"] = new AttributeValue { S = entity.UpdatedAt };
         if (entity.Version.HasValue) item["version"] = new AttributeValue { N = entity.Version.Value.ToString() };
         if (!string.IsNullOrEmpty(entity.Gsi1Pk)) item["gsi1pk"] = new AttributeValue { S = entity.Gsi1Pk };
@@ -239,7 +284,7 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
         string GetS(string key) => item.TryGetValue(key, out var v) ? v.S ?? "" : "";
         long GetN(string key) => item.TryGetValue(key, out var v) && v.N != null && long.TryParse(v.N, out var n) ? n : 0;
         int GetInt(string key) => item.TryGetValue(key, out var v) && v.N != null && int.TryParse(v.N, out var n) ? n : 0;
-        double GetD(string key) => item.TryGetValue(key, out var v) && v.N != null && double.TryParse(v.N, System.Globalization.NumberStyles.Any, null, out var d) ? d : 0;
+        double GetD(string key) => item.TryGetValue(key, out var v) && v.N != null && double.TryParse(v.N, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : 0;
 
         return new VideoEntity
         {
@@ -251,6 +296,7 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
             ContentType = GetS("contentType"),
             SizeBytes = GetN("sizeBytes"),
             DurationSec = item.TryGetValue("durationSec", out var dur) ? GetD("durationSec") : null,
+            FrameIntervalSec = item.TryGetValue("frameIntervalSec", out _) ? (double?)GetD("frameIntervalSec") : null,
             Status = GetS("status"),
             ProcessingMode = string.IsNullOrEmpty(GetS("processingMode")) ? "SingleLambda" : GetS("processingMode"),
             ProgressPercent = GetInt("progressPercent"),
@@ -270,6 +316,13 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
             UploadUrlExpiresAt = string.IsNullOrEmpty(GetS("uploadUrlExpiresAt")) ? null : GetS("uploadUrlExpiresAt"),
             FramesProcessed = item.ContainsKey("framesProcessed") ? GetInt("framesProcessed") : null,
             FinalizedAt = string.IsNullOrEmpty(GetS("finalizedAt")) ? null : GetS("finalizedAt"),
+            MaxParallelChunks = item.ContainsKey("maxParallelChunks") ? GetInt("maxParallelChunks") : null,
+            ProcessingSummaryJson = string.IsNullOrEmpty(GetS("processingSummary")) ? null : GetS("processingSummary"),
+            ProcessingStartedAt = string.IsNullOrEmpty(GetS("processingStartedAt")) ? null : GetS("processingStartedAt"),
+            ImagesProcessingCompletedAt = string.IsNullOrEmpty(GetS("imagesProcessingCompletedAt")) ? null : GetS("imagesProcessingCompletedAt"),
+            ProcessingCompletedAt = string.IsNullOrEmpty(GetS("processingCompletedAt")) ? null : GetS("processingCompletedAt"),
+            LastFailedAt = string.IsNullOrEmpty(GetS("lastFailedAt")) ? null : GetS("lastFailedAt"),
+            LastCancelledAt = string.IsNullOrEmpty(GetS("lastCancelledAt")) ? null : GetS("lastCancelledAt"),
             CreatedAt = GetS("createdAt"),
             UpdatedAt = string.IsNullOrEmpty(GetS("updatedAt")) ? null : GetS("updatedAt"),
             Version = item.ContainsKey("version") ? GetInt("version") : null

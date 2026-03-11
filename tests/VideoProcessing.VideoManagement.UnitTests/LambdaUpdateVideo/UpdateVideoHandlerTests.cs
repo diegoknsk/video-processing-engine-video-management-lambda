@@ -43,7 +43,7 @@ public class UpdateVideoHandlerTests
         {
             VideoId = videoId,
             UserId = userId,
-            Status = VideoStatus.Processing
+            Status = VideoStatus.ProcessingImages
         };
         var validator = new Mock<IValidator<UpdateVideoInputModel>>();
         validator.Setup(v => v.ValidateAsync(evt, It.IsAny<CancellationToken>()))
@@ -59,6 +59,8 @@ public class UpdateVideoHandlerTests
 
         result.StatusCode.Should().Be(200);
         result.Video.Should().NotBeNull();
+        result.Video!.Status.Should().Be(VideoStatus.UploadPending);
+        result.Video.StatusDescription.Should().Be("Aguardando upload");
         useCase.Verify(u => u.ExecuteAsync(videoId, evt, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -67,7 +69,7 @@ public class UpdateVideoHandlerTests
     {
         var userId = Guid.NewGuid();
         var videoId = Guid.NewGuid();
-        var evt = new UpdateVideoLambdaEvent { VideoId = videoId, UserId = userId, Status = VideoStatus.Processing };
+        var evt = new UpdateVideoLambdaEvent { VideoId = videoId, UserId = userId, Status = VideoStatus.ProcessingImages };
         var validator = new Mock<IValidator<UpdateVideoInputModel>>();
         validator.Setup(v => v.ValidateAsync(evt, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new FluentValidation.Results.ValidationResult());

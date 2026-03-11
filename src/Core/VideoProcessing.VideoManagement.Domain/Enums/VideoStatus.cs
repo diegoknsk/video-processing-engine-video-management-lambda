@@ -1,11 +1,14 @@
 namespace VideoProcessing.VideoManagement.Domain.Enums;
 
+/// <summary>
+/// Status do vídeo no pipeline de processamento.
+/// </summary>
 public enum VideoStatus
 {
-    Pending,
-    Uploading, //TODO: REMOVER DEPOIS, NAO TENHO COMO PEGAR O STATUS DE UPLOADING, POIS O VIDEO SÓ EXISTE APÓS O UPLOAD, ENTÃO NUNCA VAI ESTAR NESSE STATUS
-    Processing,
-    Completed,
-    Failed,
-    Cancelled
+    UploadPending = 0,
+    ProcessingImages = 1,
+    GeneratingZip = 2,
+    Completed = 3,
+    Failed = 4,
+    Cancelled = 5
 }

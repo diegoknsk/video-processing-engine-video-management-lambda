@@ -49,7 +49,8 @@ public sealed class OpenApiExamplesAndErrorsFilter : IOperationFilter
         operation.Description =
             "Registra um novo vídeo e retorna URL pré-assinada para upload no S3. **ClientRequestId:** opcional. " +
             "Se informado, o mesmo valor para o mesmo usuário retorna o mesmo videoId (idempotência para retries). " +
-            "Para **múltiplos vídeos**, envie um UUID diferente por arquivo ou omita o campo; não use valor fixo (ex.: userId) em todos os POSTs.";
+            "Para **múltiplos vídeos**, envie um UUID diferente por arquivo ou omita o campo; não use valor fixo (ex.: userId) em todos os POSTs. " +
+            "**frameIntervalSec:** opcional; intervalo em segundos para outro microserviço capturar frames. Quando durationSec for informado, não pode exceder 50% da duração.";
     }
 
     private static void AddUploadVideoExamples(OpenApiOperation operation, OperationFilterContext context)
@@ -62,6 +63,8 @@ public sealed class OpenApiExamplesAndErrorsFilter : IOperationFilter
                 ["contentType"] = new OpenApiString("video/mp4"),
                 ["sizeKb"] = new OpenApiLong(51200),
                 ["durationSec"] = new OpenApiDouble(120.5),
+                ["frameIntervalSec"] = new OpenApiDouble(60),
+                ["maxParallelChunks"] = new OpenApiInteger(4),
                 ["clientRequestId"] = new OpenApiString("a1b2c3d4-e5f6-4789-a012-3456789abcde")
             };
         }
@@ -89,6 +92,7 @@ public sealed class OpenApiExamplesAndErrorsFilter : IOperationFilter
                 ["contentType"] = new OpenApiString("video/mp4"),
                 ["sizeBytes"] = new OpenApiLong(52428800),
                 ["durationSec"] = new OpenApiDouble(120.5),
+                ["frameIntervalSec"] = new OpenApiDouble(60),
                 ["status"] = new OpenApiString("Processing"),
                 ["processingMode"] = new OpenApiString("SingleLambda"),
                 ["progressPercent"] = new OpenApiInteger(45),

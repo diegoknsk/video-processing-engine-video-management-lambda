@@ -21,7 +21,7 @@ public class UpdateVideoLambdaEventValidationTests
         {
             VideoId = Guid.NewGuid(),
             UserId = Guid.Empty,
-            Status = VideoStatus.Processing
+            Status = VideoStatus.ProcessingImages
         };
         var result = _validator.Validate(evt);
         result.IsValid.Should().BeFalse();
@@ -47,7 +47,7 @@ public class UpdateVideoLambdaEventValidationTests
         {
             VideoId = Guid.NewGuid(),
             UserId = Guid.NewGuid(),
-            Status = VideoStatus.Processing
+            Status = VideoStatus.ProcessingImages
         };
         var result = _validator.Validate(evt);
         result.IsValid.Should().BeTrue();
