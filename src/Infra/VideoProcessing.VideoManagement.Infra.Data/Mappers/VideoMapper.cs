@@ -16,6 +16,7 @@ public static class VideoMapper
             Sk = $"VIDEO#{video.VideoId}",
             VideoId = video.VideoId.ToString(),
             UserId = video.UserId.ToString(),
+            UserEmail = video.UserEmail,
             OriginalFileName = video.OriginalFileName,
             ContentType = video.ContentType,
             SizeBytes = video.SizeBytes,
@@ -69,6 +70,7 @@ public static class VideoMapper
         var data = new VideoRehydrationData(
             VideoId: Guid.Parse(entity.VideoId),
             UserId: Guid.Parse(entity.UserId),
+            UserEmail: string.IsNullOrWhiteSpace(entity.UserEmail) ? null : entity.UserEmail,
             OriginalFileName: entity.OriginalFileName,
             ContentType: entity.ContentType,
             SizeBytes: entity.SizeBytes,

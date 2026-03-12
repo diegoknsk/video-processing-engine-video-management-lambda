@@ -118,7 +118,7 @@ public class GetVideoByIdUseCaseTests
         var userId = Guid.NewGuid();
         var video = new Video(userId, "test.mp4", "video/mp4", 1024);
         var data = new VideoRehydrationData(
-            video.VideoId, video.UserId, video.OriginalFileName, video.ContentType, video.SizeBytes,
+            video.VideoId, video.UserId, video.UserEmail, video.OriginalFileName, video.ContentType, video.SizeBytes,
             video.DurationSec, video.FrameIntervalSec, video.Status, video.ProcessingMode, video.ProgressPercent,
             video.S3BucketVideo, video.S3KeyVideo, video.S3BucketZip, video.S3KeyZip,
             "my-bucket", "path/result.zip", "resultado.zip",
@@ -161,7 +161,7 @@ public class GetVideoByIdUseCaseTests
         var userId = Guid.NewGuid();
         var video = new Video(userId, "test.mp4", "video/mp4", 1024);
         var data = new VideoRehydrationData(
-            video.VideoId, video.UserId, video.OriginalFileName, video.ContentType, video.SizeBytes,
+            video.VideoId, video.UserId, video.UserEmail, video.OriginalFileName, video.ContentType, video.SizeBytes,
             video.DurationSec, video.FrameIntervalSec, video.Status, video.ProcessingMode, video.ProgressPercent,
             video.S3BucketVideo, video.S3KeyVideo, video.S3BucketZip, video.S3KeyZip,
             "bucket", "key.zip", "file.zip",

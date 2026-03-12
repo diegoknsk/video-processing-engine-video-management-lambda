@@ -6,6 +6,8 @@ public class Video
 {
     public Guid VideoId { get; private set; }
     public Guid UserId { get; private set; }
+    /// <summary>Email do usuário no momento da criação (Cognito).</summary>
+    public string? UserEmail { get; private set; }
     public string OriginalFileName { get; private set; } = string.Empty;
     public string ContentType { get; private set; } = string.Empty;
     public long SizeBytes { get; private set; }
@@ -62,6 +64,7 @@ public class Video
     {
         VideoId = d.VideoId;
         UserId = d.UserId;
+        UserEmail = d.UserEmail;
         OriginalFileName = d.OriginalFileName;
         ContentType = d.ContentType;
         SizeBytes = d.SizeBytes;
@@ -113,6 +116,7 @@ public class Video
         var data = new VideoRehydrationData(
             VideoId: existing.VideoId,
             UserId: existing.UserId,
+            UserEmail: existing.UserEmail,
             OriginalFileName: existing.OriginalFileName,
             ContentType: existing.ContentType,
             SizeBytes: existing.SizeBytes,
@@ -153,7 +157,7 @@ public class Video
         return FromPersistence(data);
     }
 
-    public Video(Guid userId, string originalFileName, string contentType, long sizeBytes, string? clientRequestId = null)
+    public Video(Guid userId, string originalFileName, string contentType, long sizeBytes, string? clientRequestId = null, string? userEmail = null)
     {
         if (string.IsNullOrWhiteSpace(originalFileName))
             throw new ArgumentException("OriginalFileName cannot be empty.", nameof(originalFileName));
@@ -164,6 +168,7 @@ public class Video
 
         VideoId = Guid.NewGuid();
         UserId = userId;
+        UserEmail = userEmail;
         OriginalFileName = originalFileName;
         ContentType = contentType;
         SizeBytes = sizeBytes;

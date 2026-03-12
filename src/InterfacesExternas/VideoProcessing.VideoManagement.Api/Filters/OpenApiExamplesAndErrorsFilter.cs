@@ -88,6 +88,7 @@ public sealed class OpenApiExamplesAndErrorsFilter : IOperationFilter
             {
                 ["videoId"] = new OpenApiString("3fa85f64-5717-4562-b3fc-2c963f66afa6"),
                 ["userId"] = new OpenApiString("7ba85f64-5717-4562-b3fc-2c963f66afa6"),
+                ["userEmail"] = new OpenApiString("usuario@exemplo.com"),
                 ["originalFileName"] = new OpenApiString("meu-video.mp4"),
                 ["contentType"] = new OpenApiString("video/mp4"),
                 ["sizeBytes"] = new OpenApiLong(52428800),

@@ -1,3 +1,4 @@
+using Amazon.CognitoIdentityProvider;
 using Amazon.DynamoDBv2;
 using Amazon.Lambda;
 using Amazon.S3;
@@ -67,6 +68,7 @@ public static class ServiceCollectionExtensions
             });
 
         // Infra.Data: clientes AWS e repositórios
+        services.AddSingleton<IAmazonCognitoIdentityProvider>(_ => new AmazonCognitoIdentityProviderClient());
         services.AddSingleton<IAmazonDynamoDB>(_ => new AmazonDynamoDBClient());
         services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client());
         services.AddSingleton(new AmazonLambdaClient());
@@ -74,6 +76,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IVideoChunkRepository, VideoChunkRepository>();
 
         // Infra.Data: Services
+        services.AddScoped<IGetUserEmailService, CognitoUserEmailService>();
         services.AddScoped<IS3PresignedUrlService, S3PresignedUrlService>();
 
         // Validators

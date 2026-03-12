@@ -12,6 +12,7 @@ namespace VideoProcessing.VideoManagement.Application.UseCases.UploadVideo;
 public class UploadVideoUseCase(
     IVideoRepository repository,
     IS3PresignedUrlService s3PresignedUrlService,
+    IGetUserEmailService getUserEmailService,
     IOptions<S3Options> s3Options,
     IValidator<UploadVideoInputModel> validator,
     ILogger<UploadVideoUseCase> logger) : IUploadVideoUseCase
@@ -46,6 +47,17 @@ public class UploadVideoUseCase(
             }
         }
 
+        // Obter email do usuário (Cognito); em falha, persiste com null e loga warning
+        string? userEmail = null;
+        try
+        {
+            userEmail = await getUserEmailService.GetEmailByUserIdAsync(userId.ToString(), cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Could not resolve user email for {UserId}; video will be created without UserEmail.", userId);
+        }
+
         // Create new Video (converte SizeKb para bytes para armazenamento interno)
         var sizeBytes = input.SizeKb * 1024L;
         var video = new Video(
@@ -53,7 +65,8 @@ public class UploadVideoUseCase(
             input.OriginalFileName,
             input.ContentType,
             sizeBytes,
-            input.ClientRequestId
+            input.ClientRequestId,
+            userEmail
         );
 
         if (input.DurationSec.HasValue)

@@ -16,6 +16,10 @@ public record VideoResponseModel
     [Description("Identificador do usuário")]
     public Guid UserId { get; init; }
 
+    /// <summary>Email do usuário no momento da criação (quando disponível).</summary>
+    [Description("Email do usuário")]
+    public string? UserEmail { get; init; }
+
     /// <summary>Nome original do arquivo.</summary>
     [Description("Nome original do arquivo")]
     public string OriginalFileName { get; init; } = string.Empty;

@@ -261,6 +261,7 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
             ["createdAt"] = new AttributeValue { S = entity.CreatedAt }
         };
 
+        if (!string.IsNullOrEmpty(entity.UserEmail)) item["userEmail"] = new AttributeValue { S = entity.UserEmail };
         if (entity.DurationSec.HasValue) item["durationSec"] = new AttributeValue { N = entity.DurationSec.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) };
         if (entity.FrameIntervalSec.HasValue) item["frameIntervalSec"] = new AttributeValue { N = entity.FrameIntervalSec.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) };
         if (!string.IsNullOrEmpty(entity.S3BucketVideo)) item["s3BucketVideo"] = new AttributeValue { S = entity.S3BucketVideo };
@@ -310,6 +311,7 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
             Sk = GetS("sk"),
             VideoId = GetS("videoId"),
             UserId = GetS("userId"),
+            UserEmail = string.IsNullOrEmpty(GetS("userEmail")) ? null : GetS("userEmail"),
             OriginalFileName = GetS("originalFileName"),
             ContentType = GetS("contentType"),
             SizeBytes = GetN("sizeBytes"),

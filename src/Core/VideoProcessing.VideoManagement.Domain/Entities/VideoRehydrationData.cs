@@ -8,6 +8,7 @@ namespace VideoProcessing.VideoManagement.Domain.Entities;
 internal record VideoRehydrationData(
     Guid VideoId,
     Guid UserId,
+    string? UserEmail,
     string OriginalFileName,
     string ContentType,
     long SizeBytes,

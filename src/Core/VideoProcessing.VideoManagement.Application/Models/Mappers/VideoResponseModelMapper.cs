@@ -16,6 +16,7 @@ public static class VideoResponseModelMapper
         {
             VideoId = video.VideoId,
             UserId = video.UserId,
+            UserEmail = video.UserEmail,
             OriginalFileName = video.OriginalFileName,
             ContentType = video.ContentType,
             SizeBytes = video.SizeBytes,

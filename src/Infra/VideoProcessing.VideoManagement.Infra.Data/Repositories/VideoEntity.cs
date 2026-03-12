@@ -11,6 +11,7 @@ public class VideoEntity
 
     public string VideoId { get; set; } = string.Empty;
     public string UserId { get; set; } = string.Empty;
+    public string? UserEmail { get; set; }
     public string OriginalFileName { get; set; } = string.Empty;
     public string ContentType { get; set; } = string.Empty;
     public long SizeBytes { get; set; }
