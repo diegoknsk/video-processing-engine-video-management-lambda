@@ -8,6 +8,13 @@ namespace VideoProcessing.VideoManagement.UnitTests.Infra.CrossCutting.Configura
 public class DynamoDbOptionsTests
 {
     [Fact]
+    public void ChunksTableName_WhenNotSet_ShouldDefaultToVideoChunksTable()
+    {
+        var options = new DynamoDbOptions { TableName = "videos-table", Region = "us-east-1" };
+        options.ChunksTableName.Should().Be("video-processing-engine-dev-video-chunks");
+    }
+
+    [Fact]
     public void Validation_ShouldPass_WhenAllPropertiesAreSet()
     {
         // Arrange

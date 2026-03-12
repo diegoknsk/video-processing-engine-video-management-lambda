@@ -26,4 +26,18 @@ public class S3PresignedUrlService : IS3PresignedUrlService
 
         return _s3Client.GetPreSignedURL(request);
     }
+
+    public string? GenerateGetPresignedUrl(string bucketName, string key, TimeSpan expiry)
+    {
+        if (string.IsNullOrWhiteSpace(bucketName) || string.IsNullOrWhiteSpace(key))
+            return null;
+        var request = new GetPreSignedUrlRequest
+        {
+            BucketName = bucketName,
+            Key = key,
+            Verb = HttpVerb.GET,
+            Expires = DateTime.UtcNow.Add(expiry)
+        };
+        return _s3Client.GetPreSignedURL(request);
+    }
 }

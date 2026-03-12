@@ -89,6 +89,7 @@ jobs:
             AWS__Region=$REGION,
             DynamoDB__Region=$REGION,
             DynamoDB__TableName=${{ vars.DYNAMODB_TABLE_NAME }},
+            DynamoDB__ChunksTableName=${{ vars.DYNAMODB_CHUNKS_TABLE_NAME || 'video-processing-engine-dev-video-chunks' }},
             S3__Region=$REGION,
             S3__BucketVideo=${{ vars.S3_BUCKET_VIDEO }},
             S3__BucketFrames=${{ vars.S3_BUCKET_FRAMES }},

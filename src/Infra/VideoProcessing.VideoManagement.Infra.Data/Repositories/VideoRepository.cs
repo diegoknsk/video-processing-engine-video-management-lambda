@@ -137,15 +137,30 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
             attrValues[":zipBucket"] = new AttributeValue { S = video.S3BucketZip };
             attrValues[":zipKey"] = new AttributeValue { S = video.S3KeyZip ?? "" };
         }
+        if (!string.IsNullOrEmpty(video.ZipBucket))
+        {
+            updateExpr += ", zipBucket = :zipBucketFinal";
+            attrValues[":zipBucketFinal"] = new AttributeValue { S = video.ZipBucket };
+        }
+        if (!string.IsNullOrEmpty(video.ZipKey))
+        {
+            updateExpr += ", zipKey = :zipKeyFinal";
+            attrValues[":zipKeyFinal"] = new AttributeValue { S = video.ZipKey };
+        }
+        if (!string.IsNullOrEmpty(video.ZipFileName))
+        {
+            updateExpr += ", zipFileName = :zipFileName";
+            attrValues[":zipFileName"] = new AttributeValue { S = video.ZipFileName };
+        }
         if (!string.IsNullOrEmpty(video.FramesPrefix))
         {
             updateExpr += ", framesPrefix = :framesPrefix";
             attrValues[":framesPrefix"] = new AttributeValue { S = video.FramesPrefix };
         }
-        if (video.MaxParallelChunks.HasValue)
+        if (video.ParallelChunks.HasValue)
         {
-            updateExpr += ", maxParallelChunks = :maxParallelChunks";
-            attrValues[":maxParallelChunks"] = new AttributeValue { N = video.MaxParallelChunks.Value.ToString() };
+            updateExpr += ", parallelChunks = :parallelChunks";
+            attrValues[":parallelChunks"] = new AttributeValue { N = video.ParallelChunks.Value.ToString() };
         }
         if (video.ProcessingSummary != null)
         {
@@ -252,6 +267,9 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
         if (!string.IsNullOrEmpty(entity.S3KeyVideo)) item["s3KeyVideo"] = new AttributeValue { S = entity.S3KeyVideo };
         if (!string.IsNullOrEmpty(entity.S3BucketZip)) item["s3BucketZip"] = new AttributeValue { S = entity.S3BucketZip };
         if (!string.IsNullOrEmpty(entity.S3KeyZip)) item["s3KeyZip"] = new AttributeValue { S = entity.S3KeyZip };
+        if (!string.IsNullOrEmpty(entity.ZipBucket)) item["zipBucket"] = new AttributeValue { S = entity.ZipBucket };
+        if (!string.IsNullOrEmpty(entity.ZipKey)) item["zipKey"] = new AttributeValue { S = entity.ZipKey };
+        if (!string.IsNullOrEmpty(entity.ZipFileName)) item["zipFileName"] = new AttributeValue { S = entity.ZipFileName };
         if (!string.IsNullOrEmpty(entity.S3BucketFrames)) item["s3BucketFrames"] = new AttributeValue { S = entity.S3BucketFrames };
         if (!string.IsNullOrEmpty(entity.FramesPrefix)) item["framesPrefix"] = new AttributeValue { S = entity.FramesPrefix };
         if (!string.IsNullOrEmpty(entity.StepExecutionArn)) item["stepExecutionArn"] = new AttributeValue { S = entity.StepExecutionArn };
@@ -264,7 +282,7 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
         if (!string.IsNullOrEmpty(entity.UploadUrlExpiresAt)) item["uploadUrlExpiresAt"] = new AttributeValue { S = entity.UploadUrlExpiresAt };
         if (entity.FramesProcessed.HasValue) item["framesProcessed"] = new AttributeValue { N = entity.FramesProcessed.Value.ToString() };
         if (!string.IsNullOrEmpty(entity.FinalizedAt)) item["finalizedAt"] = new AttributeValue { S = entity.FinalizedAt };
-        if (entity.MaxParallelChunks.HasValue) item["maxParallelChunks"] = new AttributeValue { N = entity.MaxParallelChunks.Value.ToString() };
+        if (entity.ParallelChunks.HasValue) item["parallelChunks"] = new AttributeValue { N = entity.ParallelChunks.Value.ToString() };
         if (!string.IsNullOrEmpty(entity.ProcessingSummaryJson)) item["processingSummary"] = new AttributeValue { S = entity.ProcessingSummaryJson };
         if (!string.IsNullOrEmpty(entity.ProcessingStartedAt)) item["processingStartedAt"] = new AttributeValue { S = entity.ProcessingStartedAt };
         if (!string.IsNullOrEmpty(entity.ImagesProcessingCompletedAt)) item["imagesProcessingCompletedAt"] = new AttributeValue { S = entity.ImagesProcessingCompletedAt };
@@ -304,6 +322,9 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
             S3KeyVideo = string.IsNullOrEmpty(GetS("s3KeyVideo")) ? null : GetS("s3KeyVideo"),
             S3BucketZip = string.IsNullOrEmpty(GetS("s3BucketZip")) ? null : GetS("s3BucketZip"),
             S3KeyZip = string.IsNullOrEmpty(GetS("s3KeyZip")) ? null : GetS("s3KeyZip"),
+            ZipBucket = string.IsNullOrEmpty(GetS("zipBucket")) ? null : GetS("zipBucket"),
+            ZipKey = string.IsNullOrEmpty(GetS("zipKey")) ? null : GetS("zipKey"),
+            ZipFileName = string.IsNullOrEmpty(GetS("zipFileName")) ? null : GetS("zipFileName"),
             S3BucketFrames = string.IsNullOrEmpty(GetS("s3BucketFrames")) ? null : GetS("s3BucketFrames"),
             FramesPrefix = string.IsNullOrEmpty(GetS("framesPrefix")) ? null : GetS("framesPrefix"),
             StepExecutionArn = string.IsNullOrEmpty(GetS("stepExecutionArn")) ? null : GetS("stepExecutionArn"),
@@ -316,7 +337,7 @@ public class VideoRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOptions>
             UploadUrlExpiresAt = string.IsNullOrEmpty(GetS("uploadUrlExpiresAt")) ? null : GetS("uploadUrlExpiresAt"),
             FramesProcessed = item.ContainsKey("framesProcessed") ? GetInt("framesProcessed") : null,
             FinalizedAt = string.IsNullOrEmpty(GetS("finalizedAt")) ? null : GetS("finalizedAt"),
-            MaxParallelChunks = item.ContainsKey("maxParallelChunks") ? GetInt("maxParallelChunks") : null,
+            ParallelChunks = item.ContainsKey("parallelChunks") ? GetInt("parallelChunks") : (item.ContainsKey("maxParallelChunks") ? GetInt("maxParallelChunks") : null),
             ProcessingSummaryJson = string.IsNullOrEmpty(GetS("processingSummary")) ? null : GetS("processingSummary"),
             ProcessingStartedAt = string.IsNullOrEmpty(GetS("processingStartedAt")) ? null : GetS("processingStartedAt"),
             ImagesProcessingCompletedAt = string.IsNullOrEmpty(GetS("imagesProcessingCompletedAt")) ? null : GetS("imagesProcessingCompletedAt"),

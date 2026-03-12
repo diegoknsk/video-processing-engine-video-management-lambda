@@ -13,14 +13,36 @@ namespace VideoProcessing.VideoManagement.UnitTests.Application.UseCases.UpdateV
 public class UpdateVideoUseCaseTests
 {
     private readonly Mock<IVideoRepository> _repositoryMock;
+    private readonly Mock<IVideoChunkRepository> _chunkRepositoryMock;
     private readonly Mock<ILogger<UpdateVideoUseCase>> _loggerMock;
     private readonly UpdateVideoUseCase _sut;
 
     public UpdateVideoUseCaseTests()
     {
         _repositoryMock = new Mock<IVideoRepository>();
+        _chunkRepositoryMock = new Mock<IVideoChunkRepository>();
         _loggerMock = new Mock<ILogger<UpdateVideoUseCase>>();
-        _sut = new UpdateVideoUseCase(_repositoryMock.Object, _loggerMock.Object);
+        _sut = new UpdateVideoUseCase(_repositoryMock.Object, _chunkRepositoryMock.Object, _loggerMock.Object);
+    }
+
+    private static VideoUpdateValues Patch(params object?[] values)
+    {
+        return new VideoUpdateValues(
+            (VideoStatus?)values[0],
+            (int?)values[1],
+            (string?)values[2],
+            (string?)values[3],
+            (string?)values[4],
+            (string?)values[5],
+            (string?)values[6],
+            (string?)values[7],
+            (string?)values[8],
+            (string?)values[9],
+            (string?)values[10],
+            (string?)values[11],
+            (int?)values[12],
+            (DateTime?)values[13],
+            (ProcessingSummary?)values[14]);
     }
 
     [Fact]
@@ -29,7 +51,7 @@ public class UpdateVideoUseCaseTests
         var userId = Guid.NewGuid();
         var video = new Video(userId, "test.mp4", "video/mp4", 1024);
         var videoId = video.VideoId;
-        var patch = new VideoUpdateValues(VideoStatus.ProcessingImages, null, null, null, null, null, null, null, null, null, null, null);
+        var patch = Patch(VideoStatus.ProcessingImages, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
         var updatedVideo = Video.FromMerge(video, patch);
 
         _repositoryMock
@@ -56,7 +78,7 @@ public class UpdateVideoUseCaseTests
         var userId = Guid.NewGuid();
         var video = new Video(userId, "test.mp4", "video/mp4", 1024);
         var videoId = video.VideoId;
-        var patch = new VideoUpdateValues(null, 50, null, null, null, null, null, null, null, null, null, null);
+        var patch = Patch(null, 50, null, null, null, null, null, null, null, null, null, null, null, null, null);
         var updatedVideo = Video.FromMerge(video, patch);
 
         _repositoryMock
@@ -81,7 +103,7 @@ public class UpdateVideoUseCaseTests
         var userId = Guid.NewGuid();
         var video = new Video(userId, "test.mp4", "video/mp4", 1024);
         var videoId = video.VideoId;
-        var patch = new VideoUpdateValues(VideoStatus.ProcessingImages, 75, "Erro de rede", "NETWORK_ERROR", null, null, null, null, null, null, null, null);
+        var patch = Patch(VideoStatus.ProcessingImages, 75, "Erro de rede", "NETWORK_ERROR", null, null, null, null, null, null, null, null, null, null, null);
         var updatedVideo = Video.FromMerge(video, patch);
 
         _repositoryMock
@@ -160,7 +182,7 @@ public class UpdateVideoUseCaseTests
         var userId = Guid.NewGuid();
         var video = new Video(userId, "test.mp4", "video/mp4", 1024);
         var videoId = video.VideoId;
-        var merged = Video.FromMerge(video, new VideoUpdateValues(VideoStatus.GeneratingZip, null, null, null, null, null, null, null, null, null, null, null));
+        var merged = Video.FromMerge(video, Patch(VideoStatus.GeneratingZip, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
         merged.UpdateStatus(VideoStatus.GeneratingZip);
 
         _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), videoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
@@ -213,10 +235,10 @@ public class UpdateVideoUseCaseTests
             .Callback<Video, CancellationToken>((v, _) => captured = v)
             .ReturnsAsync((Video v, CancellationToken _) => v);
 
-        await _sut.ExecuteAsync(videoId, new UpdateVideoInputModel { UserId = userId, MaxParallelChunks = 10 }, CancellationToken.None);
+        await _sut.ExecuteAsync(videoId, new UpdateVideoInputModel { UserId = userId, ParallelChunks = 10 }, CancellationToken.None);
 
         captured.Should().NotBeNull();
-        captured!.MaxParallelChunks.Should().Be(10);
+        captured!.ParallelChunks.Should().Be(10);
     }
 
     [Fact]
@@ -250,5 +272,37 @@ public class UpdateVideoUseCaseTests
         captured.ProcessingSummary!.Chunks.Should().ContainKey("chunk-1");
         captured.ProcessingSummary.Chunks["chunk-1"].StartSec.Should().Be(0);
         captured.ProcessingSummary.Chunks["chunk-1"].EndSec.Should().Be(10);
+
+        _chunkRepositoryMock.Verify(c => c.UpsertAsync(It.Is<VideoChunk>(ch => ch.ChunkId == "chunk-1" && ch.VideoId == videoId.ToString()), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenChunkRepositoryThrows_ShouldStillReturnSuccess()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        var videoId = video.VideoId;
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), videoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
+        _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Video>(), It.IsAny<CancellationToken>())).ReturnsAsync((Video v, CancellationToken _) => v);
+        _chunkRepositoryMock.Setup(c => c.UpsertAsync(It.IsAny<VideoChunk>(), It.IsAny<CancellationToken>())).ThrowsAsync(new InvalidOperationException("DynamoDB error"));
+
+        var input = new UpdateVideoInputModel
+        {
+            UserId = userId,
+            ProcessingSummary = new ProcessingSummaryInputModel
+            {
+                Chunks = new Dictionary<string, ChunkInfoInputModel>
+                {
+                    ["chunk-1"] = new ChunkInfoInputModel { ChunkId = "chunk-1", StartSec = 0, EndSec = 10, IntervalSec = 1 }
+                }
+            }
+        };
+
+        var result = await _sut.ExecuteAsync(videoId, input, CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.VideoId.Should().Be(videoId);
+        _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Video>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }

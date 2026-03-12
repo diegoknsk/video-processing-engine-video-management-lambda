@@ -20,6 +20,12 @@ public class Video
     public string? S3KeyVideo { get; private set; }
     public string? S3BucketZip { get; private set; }
     public string? S3KeyZip { get; private set; }
+    /// <summary>Bucket do arquivo ZIP final (resultado do processamento).</summary>
+    public string? ZipBucket { get; private set; }
+    /// <summary>Chave S3 do arquivo ZIP final.</summary>
+    public string? ZipKey { get; private set; }
+    /// <summary>Nome do arquivo ZIP final para download.</summary>
+    public string? ZipFileName { get; private set; }
     public string? S3BucketFrames { get; private set; }
     public string? FramesPrefix { get; private set; }
     
@@ -36,7 +42,7 @@ public class Video
     public DateTime? UploadUrlExpiresAt { get; private set; }
     public int? FramesProcessed { get; private set; }
     public DateTime? FinalizedAt { get; private set; }
-    public int? MaxParallelChunks { get; private set; }
+    public int? ParallelChunks { get; private set; }
     public ProcessingSummary? ProcessingSummary { get; private set; }
 
     // Pipeline timestamps
@@ -68,6 +74,9 @@ public class Video
         S3KeyVideo = d.S3KeyVideo;
         S3BucketZip = d.S3BucketZip;
         S3KeyZip = d.S3KeyZip;
+        ZipBucket = d.ZipBucket;
+        ZipKey = d.ZipKey;
+        ZipFileName = d.ZipFileName;
         S3BucketFrames = d.S3BucketFrames;
         FramesPrefix = d.FramesPrefix;
         StepExecutionArn = d.StepExecutionArn;
@@ -80,7 +89,7 @@ public class Video
         UploadUrlExpiresAt = d.UploadUrlExpiresAt;
         FramesProcessed = d.FramesProcessed;
         FinalizedAt = d.FinalizedAt;
-        MaxParallelChunks = d.MaxParallelChunks;
+        ParallelChunks = d.ParallelChunks;
         ProcessingSummary = d.ProcessingSummary;
         ProcessingStartedAt = d.ProcessingStartedAt;
         ImagesProcessingCompletedAt = d.ImagesProcessingCompletedAt;
@@ -116,6 +125,9 @@ public class Video
             S3KeyVideo: existing.S3KeyVideo,
             S3BucketZip: patch.S3BucketZip ?? existing.S3BucketZip,
             S3KeyZip: patch.S3KeyZip ?? existing.S3KeyZip,
+            ZipBucket: patch.ZipBucket ?? existing.ZipBucket,
+            ZipKey: patch.ZipKey ?? existing.ZipKey,
+            ZipFileName: patch.ZipFileName ?? existing.ZipFileName,
             S3BucketFrames: patch.S3BucketFrames ?? existing.S3BucketFrames,
             FramesPrefix: patch.FramesPrefix ?? existing.FramesPrefix,
             StepExecutionArn: patch.StepExecutionArn ?? existing.StepExecutionArn,
@@ -128,7 +140,7 @@ public class Video
             UploadUrlExpiresAt: existing.UploadUrlExpiresAt,
             FramesProcessed: existing.FramesProcessed,
             FinalizedAt: existing.FinalizedAt,
-            MaxParallelChunks: patch.MaxParallelChunks ?? existing.MaxParallelChunks,
+            ParallelChunks: patch.ParallelChunks ?? existing.ParallelChunks,
             ProcessingSummary: ProcessingSummary.Merge(existing.ProcessingSummary, patch.ProcessingSummary),
             ProcessingStartedAt: patch.ProcessingStartedAt ?? existing.ProcessingStartedAt,
             ImagesProcessingCompletedAt: existing.ImagesProcessingCompletedAt,
@@ -246,11 +258,11 @@ public class Video
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void SetMaxParallelChunks(int value)
+    public void SetParallelChunks(int value)
     {
         if (value < 1 || value > 100)
-            throw new ArgumentOutOfRangeException(nameof(value), "MaxParallelChunks must be between 1 and 100.");
-        MaxParallelChunks = value;
+            throw new ArgumentOutOfRangeException(nameof(value), "ParallelChunks must be between 1 and 100.");
+        ParallelChunks = value;
         UpdatedAt = DateTime.UtcNow;
     }
 

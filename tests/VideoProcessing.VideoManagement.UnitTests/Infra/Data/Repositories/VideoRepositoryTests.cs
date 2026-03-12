@@ -88,6 +88,100 @@ public class VideoRepositoryTests
     }
 
     [Fact]
+    public async Task GetByIdAsync_WhenItemHasParallelChunks_ShouldMapToParallelChunks()
+    {
+        var userId = Guid.NewGuid();
+        var videoId = Guid.NewGuid();
+        var item = new Dictionary<string, AttributeValue>
+        {
+            ["pk"] = new AttributeValue { S = $"USER#{userId}" },
+            ["sk"] = new AttributeValue { S = $"VIDEO#{videoId}" },
+            ["videoId"] = new AttributeValue { S = videoId.ToString() },
+            ["userId"] = new AttributeValue { S = userId.ToString() },
+            ["originalFileName"] = new AttributeValue { S = "test.mp4" },
+            ["contentType"] = new AttributeValue { S = "video/mp4" },
+            ["sizeBytes"] = new AttributeValue { N = "1024" },
+            ["status"] = new AttributeValue { S = "UploadPending" },
+            ["processingMode"] = new AttributeValue { S = "SingleLambda" },
+            ["progressPercent"] = new AttributeValue { N = "0" },
+            ["parallelChunks"] = new AttributeValue { N = "4" },
+            ["createdAt"] = new AttributeValue { S = DateTime.UtcNow.ToString("O") }
+        };
+
+        _dynamoMock.Setup(x => x.GetItemAsync(It.IsAny<GetItemRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new GetItemResponse { Item = item });
+
+        var result = await _repository.GetByIdAsync(userId.ToString(), videoId.ToString());
+
+        result.Should().NotBeNull();
+        result!.ParallelChunks.Should().Be(4);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_WhenItemHasLegacyMaxParallelChunks_ShouldMapToParallelChunks()
+    {
+        var userId = Guid.NewGuid();
+        var videoId = Guid.NewGuid();
+        var item = new Dictionary<string, AttributeValue>
+        {
+            ["pk"] = new AttributeValue { S = $"USER#{userId}" },
+            ["sk"] = new AttributeValue { S = $"VIDEO#{videoId}" },
+            ["videoId"] = new AttributeValue { S = videoId.ToString() },
+            ["userId"] = new AttributeValue { S = userId.ToString() },
+            ["originalFileName"] = new AttributeValue { S = "test.mp4" },
+            ["contentType"] = new AttributeValue { S = "video/mp4" },
+            ["sizeBytes"] = new AttributeValue { N = "1024" },
+            ["status"] = new AttributeValue { S = "UploadPending" },
+            ["processingMode"] = new AttributeValue { S = "SingleLambda" },
+            ["progressPercent"] = new AttributeValue { N = "0" },
+            ["maxParallelChunks"] = new AttributeValue { N = "4" },
+            ["createdAt"] = new AttributeValue { S = DateTime.UtcNow.ToString("O") }
+        };
+
+        _dynamoMock.Setup(x => x.GetItemAsync(It.IsAny<GetItemRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new GetItemResponse { Item = item });
+
+        var result = await _repository.GetByIdAsync(userId.ToString(), videoId.ToString());
+
+        result.Should().NotBeNull();
+        result!.ParallelChunks.Should().Be(4);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_WhenItemHasZipFields_ShouldMapZipBucketZipKeyZipFileName()
+    {
+        var userId = Guid.NewGuid();
+        var videoId = Guid.NewGuid();
+        var item = new Dictionary<string, AttributeValue>
+        {
+            ["pk"] = new AttributeValue { S = $"USER#{userId}" },
+            ["sk"] = new AttributeValue { S = $"VIDEO#{videoId}" },
+            ["videoId"] = new AttributeValue { S = videoId.ToString() },
+            ["userId"] = new AttributeValue { S = userId.ToString() },
+            ["originalFileName"] = new AttributeValue { S = "test.mp4" },
+            ["contentType"] = new AttributeValue { S = "video/mp4" },
+            ["sizeBytes"] = new AttributeValue { N = "1024" },
+            ["status"] = new AttributeValue { S = "Completed" },
+            ["processingMode"] = new AttributeValue { S = "SingleLambda" },
+            ["progressPercent"] = new AttributeValue { N = "100" },
+            ["zipBucket"] = new AttributeValue { S = "my-bucket" },
+            ["zipKey"] = new AttributeValue { S = "zips/video.zip" },
+            ["zipFileName"] = new AttributeValue { S = "resultado.zip" },
+            ["createdAt"] = new AttributeValue { S = DateTime.UtcNow.ToString("O") }
+        };
+
+        _dynamoMock.Setup(x => x.GetItemAsync(It.IsAny<GetItemRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new GetItemResponse { Item = item });
+
+        var result = await _repository.GetByIdAsync(userId.ToString(), videoId.ToString());
+
+        result.Should().NotBeNull();
+        result!.ZipBucket.Should().Be("my-bucket");
+        result.ZipKey.Should().Be("zips/video.zip");
+        result.ZipFileName.Should().Be("resultado.zip");
+    }
+
+    [Fact]
     public async Task GetByIdAsync_WhenNotExists_ShouldReturnNull()
     {
         _dynamoMock.Setup(x => x.GetItemAsync(It.IsAny<GetItemRequest>(), It.IsAny<CancellationToken>()))

@@ -34,6 +34,7 @@ public static class Startup
         var region = config["DynamoDB:Region"] ?? config["AWS:Region"] ?? Environment.GetEnvironmentVariable("AWS_REGION") ?? "us-east-1";
         services.AddSingleton<IAmazonDynamoDB>(_ => new AmazonDynamoDBClient(Amazon.RegionEndpoint.GetBySystemName(region)));
         services.AddSingleton<IVideoRepository, VideoRepository>();
+        services.AddSingleton<IVideoChunkRepository, VideoChunkRepository>();
 
         services.AddSingleton<FluentValidation.IValidator<VideoProcessing.VideoManagement.Application.Models.InputModels.UpdateVideoInputModel>, UpdateVideoInputModelValidator>();
         services.AddSingleton<IUpdateVideoUseCase, UpdateVideoUseCase>();

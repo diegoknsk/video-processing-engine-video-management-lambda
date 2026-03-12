@@ -71,6 +71,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client());
         services.AddSingleton(new AmazonLambdaClient());
         services.AddScoped<IVideoRepository, VideoRepository>();
+        services.AddScoped<IVideoChunkRepository, VideoChunkRepository>();
 
         // Infra.Data: Services
         services.AddScoped<IS3PresignedUrlService, S3PresignedUrlService>();
