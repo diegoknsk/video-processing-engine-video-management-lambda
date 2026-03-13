@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VideoProcessing.VideoManagement.Application.Configuration;
+using VideoProcessing.VideoManagement.Application.Extensions;
 using VideoProcessing.VideoManagement.Application.Models.Mappers;
 using VideoProcessing.VideoManagement.Application.Models.ResponseModels;
 using VideoProcessing.VideoManagement.Application.Ports;
@@ -52,6 +53,13 @@ public class GetVideoByIdUseCase(
             }
         }
 
+        // Guard de consistência eventual: se o status for GeneratingZip mas os chunks ainda não
+        // estiverem todos completos (janela de milissegundos do fanout), exibe como ProcessingImages.
+        var displayStatus = video.Status is VideoStatus.GeneratingZip
+            && (summary is null || summary.Total == 0 || summary.Processing > 0)
+                ? VideoStatus.ProcessingImages
+                : video.Status;
+
         ChunksSummaryResponseModel? chunksSummaryModel = null;
         if (summary is not null && summary.Total > 0)
             chunksSummaryModel = new ChunksSummaryResponseModel(
@@ -63,6 +71,8 @@ public class GetVideoByIdUseCase(
 
         return response with
         {
+            Status = displayStatus,
+            StatusDescription = displayStatus.ToFriendlyName(),
             ProgressPercent = progressPercent,
             ZipUrl = zipUrl,
             ZipFileName = video.ZipFileName ?? response.ZipFileName,

@@ -51,8 +51,8 @@ public class UpdateVideoUseCase(
 
         if (merged.ProcessingSummary?.Chunks is { } chunks && chunks.Count > 0)
         {
-            var chunkStatus = merged.Status == Domain.Enums.VideoStatus.Completed ? "completed" : "processing";
-            var processedAt = chunkStatus == "completed" ? DateTime.UtcNow : (DateTime?)null;
+            const string chunkStatus = VideoChunkConstants.StatusCompleted;
+            var processedAt = DateTime.UtcNow;
             foreach (var (chunkId, chunkInfo) in chunks)
             {
                 try
@@ -80,8 +80,9 @@ public class UpdateVideoUseCase(
         {
             try
             {
-                var chunkStatus = merged.Status == Domain.Enums.VideoStatus.Completed ? VideoChunkConstants.StatusCompleted : VideoChunkConstants.StatusProcessing;
-                var processedAt = chunkStatus == VideoChunkConstants.StatusCompleted ? DateTime.UtcNow : (DateTime?)null;
+                var isCompleted = merged.Status == Domain.Enums.VideoStatus.Completed;
+                var chunkStatus = isCompleted ? VideoChunkConstants.StatusCompleted : VideoChunkConstants.StatusProcessing;
+                var processedAt = isCompleted ? DateTime.UtcNow : (DateTime?)null;
                 var videoChunk = new VideoChunk(
                     ChunkId: singleChunk.ChunkId,
                     VideoId: videoId.ToString(),
