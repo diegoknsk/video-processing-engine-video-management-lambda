@@ -8,7 +8,10 @@ public static class VideoChunkConstants
     /// <summary>ChunkId do item especial de finalização (geração de ZIP) — não contabilizado em totalChunks.</summary>
     public const string FinalizeChunkId = "finalize";
 
-    /// <summary>Status de chunk concluído — usado no caminho fan-out onde a mensagem só é enviada após o chunk terminar.</summary>
+    /// <summary>Status de chunk em processamento.</summary>
+    public const string StatusProcessing = "processing";
+
+    /// <summary>Status de chunk concluído.</summary>
     public const string StatusCompleted = "completed";
 }
 
