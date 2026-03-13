@@ -11,6 +11,7 @@ public class VideoEntity
 
     public string VideoId { get; set; } = string.Empty;
     public string UserId { get; set; } = string.Empty;
+    public string? UserEmail { get; set; }
     public string OriginalFileName { get; set; } = string.Empty;
     public string ContentType { get; set; } = string.Empty;
     public long SizeBytes { get; set; }
@@ -24,6 +25,9 @@ public class VideoEntity
     public string? S3KeyVideo { get; set; }
     public string? S3BucketZip { get; set; }
     public string? S3KeyZip { get; set; }
+    public string? ZipBucket { get; set; }
+    public string? ZipKey { get; set; }
+    public string? ZipFileName { get; set; }
     public string? S3BucketFrames { get; set; }
     public string? FramesPrefix { get; set; }
 
@@ -38,7 +42,7 @@ public class VideoEntity
     public string? UploadUrlExpiresAt { get; set; }
     public int? FramesProcessed { get; set; }
     public string? FinalizedAt { get; set; }  // ISO 8601
-    public int? MaxParallelChunks { get; set; }
+    public int? ParallelChunks { get; set; }
     public string? ProcessingSummaryJson { get; set; }  // JSON do mapa de chunks para DynamoDB
     public string? ProcessingStartedAt { get; set; }  // ISO 8601
     public string? ImagesProcessingCompletedAt { get; set; }

@@ -7,7 +7,10 @@ using VideoProcessing.VideoManagement.Domain.Entities;
 
 namespace VideoProcessing.VideoManagement.Application.UseCases.UpdateVideo;
 
-public class UpdateVideoUseCase(IVideoRepository repository, ILogger<UpdateVideoUseCase> logger) : IUpdateVideoUseCase
+public class UpdateVideoUseCase(
+    IVideoRepository repository,
+    IVideoChunkRepository chunkRepository,
+    ILogger<UpdateVideoUseCase> logger) : IUpdateVideoUseCase
 {
     public async Task<VideoResponseModel?> ExecuteAsync(Guid videoId, UpdateVideoInputModel input, CancellationToken ct = default)
     {
@@ -24,8 +27,11 @@ public class UpdateVideoUseCase(IVideoRepository repository, ILogger<UpdateVideo
             S3KeyZip: input.S3KeyZip,
             S3BucketFrames: input.S3BucketFrames,
             S3BucketZip: input.S3BucketZip,
+            ZipBucket: input.ZipBucket,
+            ZipKey: input.ZipKey,
+            ZipFileName: input.ZipFileName,
             StepExecutionArn: input.StepExecutionArn,
-            MaxParallelChunks: input.MaxParallelChunks,
+            ParallelChunks: input.ParallelChunks,
             ProcessingStartedAt: input.ProcessingStartedAt,
             ProcessingSummary: input.ProcessingSummary is null ? null : MapProcessingSummaryFromInput(input.ProcessingSummary));
 
@@ -42,6 +48,35 @@ public class UpdateVideoUseCase(IVideoRepository repository, ILogger<UpdateVideo
         }
 
         var updated = await repository.UpdateAsync(merged, ct);
+
+        if (merged.ProcessingSummary?.Chunks is { } chunks && chunks.Count > 0)
+        {
+            var chunkStatus = merged.Status == Domain.Enums.VideoStatus.Completed ? "completed" : "processing";
+            var processedAt = chunkStatus == "completed" ? DateTime.UtcNow : (DateTime?)null;
+            foreach (var (chunkId, chunkInfo) in chunks)
+            {
+                try
+                {
+                    var videoChunk = new VideoChunk(
+                        ChunkId: chunkId,
+                        VideoId: videoId.ToString(),
+                        Status: chunkStatus,
+                        StartSec: chunkInfo.StartSec,
+                        EndSec: chunkInfo.EndSec,
+                        IntervalSec: chunkInfo.IntervalSec,
+                        ManifestPrefix: string.IsNullOrEmpty(chunkInfo.ManifestPrefix) ? null : chunkInfo.ManifestPrefix,
+                        FramesPrefix: string.IsNullOrEmpty(chunkInfo.FramesPrefix) ? null : chunkInfo.FramesPrefix,
+                        ProcessedAt: processedAt,
+                        CreatedAt: DateTime.UtcNow);
+                    await chunkRepository.UpsertAsync(videoChunk, ct);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Falha ao persistir chunk {ChunkId} do vídeo {VideoId}; atualização principal mantida.", chunkId, videoId);
+                }
+            }
+        }
+
         return VideoResponseModelMapper.ToResponseModel(updated);
     }
 

@@ -45,13 +45,25 @@ public record UpdateVideoInputModel
     [Description("Bucket S3 do ZIP")]
     public string? S3BucketZip { get; init; }
 
+    /// <summary>Bucket do arquivo ZIP final (resultado do processamento).</summary>
+    [Description("Bucket do ZIP final")]
+    public string? ZipBucket { get; init; }
+
+    /// <summary>Chave S3 do arquivo ZIP final.</summary>
+    [Description("Chave S3 do ZIP final")]
+    public string? ZipKey { get; init; }
+
+    /// <summary>Nome do arquivo ZIP final para download.</summary>
+    [Description("Nome do arquivo ZIP")]
+    public string? ZipFileName { get; init; }
+
     /// <summary>ARN da execução Step Functions (se aplicável).</summary>
     [Description("ARN da execução Step Functions")]
     public string? StepExecutionArn { get; init; }
 
-    /// <summary>Máximo de chunks processados em paralelo (1–100).</summary>
-    [Description("Máximo de chunks em paralelo")]
-    public int? MaxParallelChunks { get; init; }
+    /// <summary>Quantidade de chunks processados em paralelo (1–100).</summary>
+    [Description("Chunks em paralelo")]
+    public int? ParallelChunks { get; init; }
 
     /// <summary>Data/hora de início do processamento.</summary>
     [Description("Data/hora de início do processamento")]

@@ -16,6 +16,10 @@ public record VideoResponseModel
     [Description("Identificador do usuário")]
     public Guid UserId { get; init; }
 
+    /// <summary>Email do usuário no momento da criação (quando disponível).</summary>
+    [Description("Email do usuário")]
+    public string? UserEmail { get; init; }
+
     /// <summary>Nome original do arquivo.</summary>
     [Description("Nome original do arquivo")]
     public string OriginalFileName { get; init; } = string.Empty;
@@ -68,6 +72,14 @@ public record VideoResponseModel
     [Description("Chave S3 do ZIP")]
     public string? S3KeyZip { get; init; }
 
+    /// <summary>Nome do arquivo ZIP final para download.</summary>
+    [Description("Nome do arquivo ZIP")]
+    public string? ZipFileName { get; init; }
+
+    /// <summary>URL pré-assinada para download do arquivo ZIP (quando disponível).</summary>
+    [Description("URL de download do ZIP")]
+    public string? ZipUrl { get; init; }
+
     /// <summary>Bucket S3 dos frames.</summary>
     [Description("Bucket S3 dos frames")]
     public string? S3BucketFrames { get; init; }
@@ -116,9 +128,9 @@ public record VideoResponseModel
     [Description("Data/hora de finalização")]
     public DateTime? FinalizedAt { get; init; }
 
-    /// <summary>Máximo de chunks em paralelo.</summary>
-    [Description("Máximo de chunks em paralelo")]
-    public int? MaxParallelChunks { get; init; }
+    /// <summary>Quantidade de chunks em paralelo.</summary>
+    [Description("Chunks em paralelo")]
+    public int? ParallelChunks { get; init; }
 
     /// <summary>Resumo de processamento com chunks.</summary>
     [Description("Resumo de processamento")]

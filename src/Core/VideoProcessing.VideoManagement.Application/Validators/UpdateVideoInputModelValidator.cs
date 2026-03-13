@@ -14,7 +14,7 @@ public class UpdateVideoInputModelValidator : AbstractValidator<UpdateVideoInput
             .Must(x => x.Status != null || x.ProgressPercent != null || x.ErrorMessage != null
                 || x.ErrorCode != null || x.FramesPrefix != null || x.S3KeyZip != null
                 || x.S3BucketFrames != null || x.S3BucketZip != null || x.StepExecutionArn != null
-                || x.MaxParallelChunks != null || x.ProcessingStartedAt != null || (x.ProcessingSummary?.Chunks != null && x.ProcessingSummary.Chunks.Count > 0))
+                || x.ParallelChunks != null || x.ProcessingStartedAt != null || (x.ProcessingSummary?.Chunks != null && x.ProcessingSummary.Chunks.Count > 0))
             .WithMessage("Pelo menos um campo de atualização deve ser informado.");
 
         RuleFor(x => x.ProgressPercent)
@@ -23,8 +23,8 @@ public class UpdateVideoInputModelValidator : AbstractValidator<UpdateVideoInput
         RuleFor(x => x.Status)
             .IsInEnum().When(x => x.Status.HasValue);
 
-        RuleFor(x => x.MaxParallelChunks)
-            .InclusiveBetween(1, 100).When(x => x.MaxParallelChunks.HasValue);
+        RuleFor(x => x.ParallelChunks)
+            .InclusiveBetween(1, 100).When(x => x.ParallelChunks.HasValue);
 
         RuleForEach(x => x.ProcessingSummary!.Chunks!.Values)
             .ChildRules(chunk =>

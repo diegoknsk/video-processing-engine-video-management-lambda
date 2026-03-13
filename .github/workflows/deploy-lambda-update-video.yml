@@ -68,10 +68,11 @@ jobs:
         FUNCTION_NAME=${{ vars.LAMBDA_FUNCTION_UPDATE_STATUS_NAME }}
         REGION=${{ vars.AWS_REGION || 'us-east-1' }}
         TABLE_NAME="${{ vars.DYNAMODB_TABLE_NAME }}"
+        CHUNKS_TABLE_NAME="${{ vars.DYNAMODB_CHUNKS_TABLE_NAME || 'video-processing-engine-dev-video-chunks' }}"
         aws lambda update-function-configuration \
           --function-name "$FUNCTION_NAME" \
           --handler "VideoProcessing.VideoManagement.LambdaUpdateVideo::VideoProcessing.VideoManagement.LambdaUpdateVideo.Function::Handler" \
-          --environment "Variables={DynamoDB__TableName=$TABLE_NAME,DynamoDB__Region=$REGION}"
+          --environment "Variables={DynamoDB__TableName=$TABLE_NAME,DynamoDB__Region=$REGION,DynamoDB__ChunksTableName=$CHUNKS_TABLE_NAME}"
 
     - name: Verify deployment
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'

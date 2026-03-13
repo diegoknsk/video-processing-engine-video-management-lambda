@@ -15,6 +15,7 @@ public class UploadVideoUseCaseTests
 {
     private readonly Mock<IVideoRepository> _repositoryMock;
     private readonly Mock<IS3PresignedUrlService> _s3ServiceMock;
+    private readonly Mock<IGetUserEmailService> _getUserEmailServiceMock;
     private readonly S3Options _s3Options;
     private readonly IValidator<UploadVideoInputModel> _validator;
     private readonly Mock<ILogger<UploadVideoUseCase>> _loggerMock;
@@ -24,6 +25,9 @@ public class UploadVideoUseCaseTests
     {
         _repositoryMock = new Mock<IVideoRepository>();
         _s3ServiceMock = new Mock<IS3PresignedUrlService>();
+        _getUserEmailServiceMock = new Mock<IGetUserEmailService>();
+        _getUserEmailServiceMock.Setup(s => s.GetEmailByUserIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
         _s3Options = new S3Options { BucketVideo = "video-bucket", BucketFrames = "frames-bucket", BucketZip = "zip-bucket", Region = "us-east-1", PresignedUrlTtlMinutes = 15 };
         _validator = new UploadVideoInputModelValidator();
         _loggerMock = new Mock<ILogger<UploadVideoUseCase>>();
@@ -31,6 +35,7 @@ public class UploadVideoUseCaseTests
         _useCase = new UploadVideoUseCase(
             _repositoryMock.Object,
             _s3ServiceMock.Object,
+            _getUserEmailServiceMock.Object,
             Options.Create(_s3Options),
             _validator,
             _loggerMock.Object
@@ -71,9 +76,67 @@ public class UploadVideoUseCaseTests
         _repositoryMock.Verify(r => r.CreateAsync(It.Is<Video>(v =>
             v.UserId == userId &&
             v.OriginalFileName == input.OriginalFileName &&
-            v.S3BucketVideo == _s3Options.BucketVideo),
+            v.S3BucketVideo == _s3Options.BucketVideo &&
+            v.UserEmail == null),
             input.ClientRequestId,
             It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenGetUserEmailReturnsEmail_ShouldPersistVideoWithUserEmail()
+    {
+        var input = new UploadVideoInputModel
+        {
+            OriginalFileName = "test.mp4",
+            ContentType = "video/mp4",
+            SizeKb = 1,
+            ClientRequestId = Guid.NewGuid().ToString()
+        };
+        var userId = Guid.NewGuid();
+        const string userEmail = "usuario@exemplo.com";
+
+        _getUserEmailServiceMock.Setup(s => s.GetEmailByUserIdAsync(userId.ToString(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(userEmail);
+        _repositoryMock.Setup(r => r.GetByClientRequestIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Video?)null);
+        _repositoryMock.Setup(r => r.CreateAsync(It.IsAny<Video>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Video v, string? _, CancellationToken _) => v);
+        _s3ServiceMock.Setup(s => s.GeneratePutPresignedUrl(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<string>()))
+            .Returns("https://s3.example.com/presigned");
+
+        var result = await _useCase.ExecuteAsync(input, userId, CancellationToken.None);
+
+        Assert.NotNull(result);
+        _repositoryMock.Verify(r => r.CreateAsync(It.Is<Video>(v =>
+            v.UserEmail == userEmail), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenGetUserEmailReturnsNull_ShouldPersistVideoWithNullUserEmail()
+    {
+        var input = new UploadVideoInputModel
+        {
+            OriginalFileName = "test.mp4",
+            ContentType = "video/mp4",
+            SizeKb = 1
+        };
+        var userId = Guid.NewGuid();
+        Video? capturedVideo = null;
+
+        _getUserEmailServiceMock.Setup(s => s.GetEmailByUserIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
+        _repositoryMock.Setup(r => r.GetByClientRequestIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Video?)null);
+        _repositoryMock.Setup(r => r.CreateAsync(It.IsAny<Video>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Callback<Video, string?, CancellationToken>((v, _, _) => capturedVideo = v)
+            .ReturnsAsync((Video v, string? _, CancellationToken _) => v);
+        _s3ServiceMock.Setup(s => s.GeneratePutPresignedUrl(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<string>()))
+            .Returns("https://s3.example.com/presigned");
+
+        await _useCase.ExecuteAsync(input, userId, CancellationToken.None);
+
+        Assert.NotNull(capturedVideo);
+        Assert.Null(capturedVideo.UserEmail);
     }
 
     [Fact]

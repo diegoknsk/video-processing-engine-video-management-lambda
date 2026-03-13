@@ -64,7 +64,7 @@ public sealed class OpenApiExamplesAndErrorsFilter : IOperationFilter
                 ["sizeKb"] = new OpenApiLong(51200),
                 ["durationSec"] = new OpenApiDouble(120.5),
                 ["frameIntervalSec"] = new OpenApiDouble(60),
-                ["maxParallelChunks"] = new OpenApiInteger(4),
+                ["parallelChunks"] = new OpenApiInteger(4),
                 ["clientRequestId"] = new OpenApiString("a1b2c3d4-e5f6-4789-a012-3456789abcde")
             };
         }
@@ -88,6 +88,7 @@ public sealed class OpenApiExamplesAndErrorsFilter : IOperationFilter
             {
                 ["videoId"] = new OpenApiString("3fa85f64-5717-4562-b3fc-2c963f66afa6"),
                 ["userId"] = new OpenApiString("7ba85f64-5717-4562-b3fc-2c963f66afa6"),
+                ["userEmail"] = new OpenApiString("usuario@exemplo.com"),
                 ["originalFileName"] = new OpenApiString("meu-video.mp4"),
                 ["contentType"] = new OpenApiString("video/mp4"),
                 ["sizeBytes"] = new OpenApiLong(52428800),

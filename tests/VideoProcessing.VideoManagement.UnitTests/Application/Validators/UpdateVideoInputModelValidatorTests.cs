@@ -124,27 +124,27 @@ public class UpdateVideoInputModelValidatorTests
     }
 
     [Fact]
-    public void Validate_MaxParallelChunksZero_ShouldFail()
+    public void Validate_ParallelChunksZero_ShouldFail()
     {
         var input = new UpdateVideoInputModel
         {
             UserId = Guid.NewGuid(),
-            MaxParallelChunks = 0
+            ParallelChunks = 0
         };
 
         var result = _validator.Validate(input);
 
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == "MaxParallelChunks");
+        result.Errors.Should().Contain(e => e.PropertyName == "ParallelChunks");
     }
 
     [Fact]
-    public void Validate_MaxParallelChunks101_ShouldFail()
+    public void Validate_ParallelChunks101_ShouldFail()
     {
         var input = new UpdateVideoInputModel
         {
             UserId = Guid.NewGuid(),
-            MaxParallelChunks = 101
+            ParallelChunks = 101
         };
 
         var result = _validator.Validate(input);
@@ -153,12 +153,12 @@ public class UpdateVideoInputModelValidatorTests
     }
 
     [Fact]
-    public void Validate_MaxParallelChunks10_ShouldPass()
+    public void Validate_ParallelChunks10_ShouldPass()
     {
         var input = new UpdateVideoInputModel
         {
             UserId = Guid.NewGuid(),
-            MaxParallelChunks = 10
+            ParallelChunks = 10
         };
 
         var result = _validator.Validate(input);
