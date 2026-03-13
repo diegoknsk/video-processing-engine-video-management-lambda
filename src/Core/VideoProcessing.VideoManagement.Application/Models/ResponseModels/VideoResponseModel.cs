@@ -167,6 +167,11 @@ public record VideoResponseModel
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? PendingChunks { get; init; }
 
+    /// <summary>Percentual de chunks concluídos (0-100).</summary>
+    [Description("Percentual de chunks concluídos")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? ChunksCompletionPercent { get; init; }
+
     /// <summary>Resumo de contagem por status (FanOut).</summary>
     [Description("Resumo de chunks")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

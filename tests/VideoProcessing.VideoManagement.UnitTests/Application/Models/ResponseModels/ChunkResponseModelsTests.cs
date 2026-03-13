@@ -31,4 +31,25 @@ public class ChunksSummaryResponseModelTests
         model.Failed.Should().Be(1);
         model.Pending.Should().Be(2);
     }
+
+    [Theory]
+    [InlineData(10, 5, 50)]
+    [InlineData(10, 10, 100)]
+    [InlineData(10, 0, 0)]
+    [InlineData(3, 1, 33)]
+    [InlineData(3, 2, 66)]
+    public void CompletionPercent_ShouldReturnFlooredPercentage(int total, int completed, int expected)
+    {
+        var model = new ChunksSummaryResponseModel(total, completed, 0, 0, 0);
+
+        model.CompletionPercent.Should().Be(expected);
+    }
+
+    [Fact]
+    public void CompletionPercent_WhenTotalIsZero_ShouldReturnZero()
+    {
+        var model = new ChunksSummaryResponseModel(0, 0, 0, 0, 0);
+
+        model.CompletionPercent.Should().Be(0);
+    }
 }

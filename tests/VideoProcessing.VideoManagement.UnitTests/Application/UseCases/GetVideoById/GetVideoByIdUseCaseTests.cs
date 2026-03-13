@@ -295,6 +295,43 @@ public class GetVideoByIdUseCaseTests
         result.CurrentStage.Should().NotBeNull();
     }
 
+    [Theory]
+    [InlineData(10, 5, 50)]
+    [InlineData(10, 10, 100)]
+    [InlineData(10, 0, 0)]
+    [InlineData(3, 1, 33)]
+    public async Task ExecuteAsync_WhenHasChunks_ShouldReturnCorrectChunksCompletionPercent(int total, int completed, int expectedPercent)
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        video.UpdateStatus(VideoStatus.ProcessingImages);
+        video.SetParallelChunks(total);
+
+        var summary = new ChunkStatusSummary(total, completed, total - completed, 0, 0, null);
+        _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
+        _chunkRepositoryMock.Setup(c => c.GetStatusSummaryAsync(video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(summary);
+        _chunkRepositoryMock.Setup(c => c.GetChunksAsync(video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(Array.Empty<VideoChunk>());
+
+        var result = await _sut.ExecuteAsync(userId.ToString(), video.VideoId.ToString(), CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.ChunksCompletionPercent.Should().Be(expectedPercent);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenNoChunks_ShouldReturnNullChunksCompletionPercent()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
+
+        var result = await _sut.ExecuteAsync(userId.ToString(), video.VideoId.ToString(), CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.ChunksCompletionPercent.Should().BeNull();
+    }
+
     [Fact]
     public async Task ExecuteAsync_WhenNoChunks_ShouldReturnNullChunksSummaryAndNullChunks()
     {
