@@ -142,4 +142,82 @@ public class UpdateVideoEventAdapterTests
         result[0].S3BucketFrames.Should().Be("my-bucket");
         result[0].StepExecutionArn.Should().Be("arn:aws:states:us-east-1:123:execution:sm:exec-1");
     }
+
+    [Fact]
+    public void FromRawEvent_DirectJsonWithFinalize_MapsFinalizeInfoCorrectly()
+    {
+        var videoId = "3fa85f64-5717-4562-b3fc-2c963f66afa6";
+        var userId = "7c9e6679-7425-40de-944b-e07fc1f90ae7";
+        const string directJson = """
+            {
+              "status": 3,
+              "progressPercent": 100,
+              "finalize": {
+                "ordenaAutomaticamente": true,
+                "outputBucket": "video-processing-engine-dev-zip",
+                "framesBasePrefix": "videos/user1/video1/frames/",
+                "framesBucket": "video-processing-engine-dev-images",
+                "outputBasePrefix": "user1/video1",
+                "videoId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+              },
+              "videoId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+              "userId": "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+            }
+            """;
+        using var doc = JsonDocument.Parse(directJson);
+        var result = _sut.FromRawEvent(doc);
+        result.Should().HaveCount(1);
+        result[0].FinalizeInfo.Should().NotBeNull();
+        var finalizeInfo = result[0].FinalizeInfo!;
+        finalizeInfo.VideoId.Should().Be(Guid.Parse(videoId));
+        finalizeInfo.FramesBucket.Should().Be("video-processing-engine-dev-images");
+        finalizeInfo.FramesBasePrefix.Should().Be("videos/user1/video1/frames/");
+        finalizeInfo.OutputBucket.Should().Be("video-processing-engine-dev-zip");
+        finalizeInfo.OutputBasePrefix.Should().Be("user1/video1");
+        finalizeInfo.OrdenaAutomaticamente.Should().BeTrue();
+        result[0].VideoId.Should().Be(Guid.Parse(videoId));
+        result[0].UserId.Should().Be(Guid.Parse(userId));
+    }
+
+    [Fact]
+    public void FromRawEvent_DirectJsonWithoutFinalize_FinalizeInfoIsNull()
+    {
+        const string directJson = """
+            {
+              "videoId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+              "userId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+              "status": 1,
+              "progressPercent": 50
+            }
+            """;
+        using var doc = JsonDocument.Parse(directJson);
+        var result = _sut.FromRawEvent(doc);
+        result.Should().HaveCount(1);
+        result[0].FinalizeInfo.Should().BeNull();
+    }
+
+    [Fact]
+    public void FromRawEvent_DirectJsonWithFinalizePartialFields_DeserializesTolerantly()
+    {
+        const string directJson = """
+            {
+              "videoId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+              "userId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+              "status": 3,
+              "finalize": {
+                "framesBucket": "my-frames-bucket"
+              }
+            }
+            """;
+        using var doc = JsonDocument.Parse(directJson);
+        var result = _sut.FromRawEvent(doc);
+        result.Should().HaveCount(1);
+        result[0].FinalizeInfo.Should().NotBeNull();
+        var finalizeInfo = result[0].FinalizeInfo!;
+        finalizeInfo.FramesBucket.Should().Be("my-frames-bucket");
+        finalizeInfo.FramesBasePrefix.Should().BeNull();
+        finalizeInfo.OutputBucket.Should().BeNull();
+        finalizeInfo.VideoId.Should().BeNull();
+        finalizeInfo.OrdenaAutomaticamente.Should().BeFalse();
+    }
 }

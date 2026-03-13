@@ -23,9 +23,11 @@ public class GetVideoByIdUseCase(
 
         var response = VideoResponseModelMapper.ToResponseModel(video);
 
+        var chunksProcessed = await chunkRepository.CountProcessedAsync(videoId, ct);
+        var computedFromChunks = ComputeProgressPercent(video.ParallelChunks ?? 0, chunksProcessed);
         var progressPercent = video.Status == VideoStatus.Completed
             ? 100
-            : ComputeProgressPercent(video.ParallelChunks ?? 0, await chunkRepository.CountProcessedAsync(videoId, ct));
+            : Math.Max(computedFromChunks, video.ProgressPercent);
 
         string? zipUrl = null;
         if (!string.IsNullOrEmpty(video.ZipKey) && !string.IsNullOrEmpty(video.ZipBucket))
