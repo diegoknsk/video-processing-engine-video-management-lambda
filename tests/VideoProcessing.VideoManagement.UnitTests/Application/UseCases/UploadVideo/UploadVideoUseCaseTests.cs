@@ -245,4 +245,63 @@ public class UploadVideoUseCaseTests
         Assert.NotNull(capturedVideo);
         Assert.Equal(30, capturedVideo.FrameIntervalSec);
     }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenGetUserEmailThrowsException_ShouldContinueWithNullEmail()
+    {
+        // Arrange
+        var input = new UploadVideoInputModel
+        {
+            OriginalFileName = "test.mp4",
+            ContentType = "video/mp4",
+            SizeKb = 1
+        };
+        var userId = Guid.NewGuid();
+        Video? capturedVideo = null;
+
+        _getUserEmailServiceMock.Setup(s => s.GetEmailByUserIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Cognito service unavailable"));
+
+        _repositoryMock.Setup(r => r.GetByClientRequestIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Video?)null);
+
+        _repositoryMock.Setup(r => r.CreateAsync(It.IsAny<Video>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Callback<Video, string?, CancellationToken>((v, _, _) => capturedVideo = v)
+            .ReturnsAsync((Video v, string? _, CancellationToken _) => v);
+
+        _s3ServiceMock.Setup(s => s.GeneratePutPresignedUrl(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<string>()))
+            .Returns("https://s3.example.com/presigned");
+
+        // Act — should NOT throw; failure in email service is handled gracefully
+        var result = await _useCase.ExecuteAsync(input, userId, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotNull(capturedVideo);
+        Assert.Null(capturedVideo!.UserEmail);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenIdempotencyHitButNoS3Details_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var clientRequestId = Guid.NewGuid().ToString();
+        var input = new UploadVideoInputModel
+        {
+            OriginalFileName = "test.mp4",
+            ContentType = "video/mp4",
+            SizeKb = 1,
+            ClientRequestId = clientRequestId
+        };
+        var userId = Guid.NewGuid();
+        var existingVideo = new Video(userId, "test.mp4", "video/mp4", 1024, clientRequestId);
+        // Existing video WITHOUT S3 details (S3BucketVideo is null)
+
+        _repositoryMock.Setup(r => r.GetByClientRequestIdAsync(userId.ToString(), clientRequestId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingVideo);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _useCase.ExecuteAsync(input, userId, CancellationToken.None));
+    }
 }

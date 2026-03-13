@@ -82,6 +82,9 @@ public class GetVideoByIdUseCase(
             ProcessingChunks = summary?.Total > 0 ? summary.Processing : null,
             FailedChunks = summary?.Total > 0 ? summary.Failed : null,
             PendingChunks = summary?.Total > 0 ? summary.Pending : null,
+            ChunksCompletionPercent = summary?.Total > 0
+                ? (int)Math.Floor(summary.Completed * 100.0 / summary.Total)
+                : null,
             ChunksSummary = chunksSummaryModel,
             Chunks = chunkItems
         };

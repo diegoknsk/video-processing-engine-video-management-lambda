@@ -72,7 +72,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IAmazonCognitoIdentityProvider>(_ => new AmazonCognitoIdentityProviderClient());
         services.AddSingleton<IAmazonDynamoDB>(_ => new AmazonDynamoDBClient());
         services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client());
-        services.AddSingleton(new AmazonLambdaClient());
+        services.AddSingleton<IAmazonLambda>(new AmazonLambdaClient());
         services.AddScoped<IVideoRepository, VideoRepository>();
         services.AddScoped<IVideoChunkRepository, VideoChunkRepository>();
 
