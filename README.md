@@ -1,5 +1,10 @@
 # Video Processing Engine - Video Management Lambda
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=SONAR_PROJECT_KEY&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=SONAR_PROJECT_KEY)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=SONAR_PROJECT_KEY&metric=coverage)](https://sonarcloud.io/summary/new_code?id=SONAR_PROJECT_KEY)
+
+> **SonarCloud:** substitua `SONAR_PROJECT_KEY` nas URLs acima pelo Project Key do seu projeto no SonarCloud (ex.: `minha-org_video-processing-engine-video-management-lambda`). Configuração completa: [SonarCloud Setup](docs/sonarcloud-setup.md).
+
 ## Descrição
 Serviço Serverless (AWS Lambda) responsável pelo gerenciamento de vídeos (upload, consulta, status). Desenvolvido em .NET 10 seguindo Clean Architecture.
 

@@ -4,6 +4,7 @@ using VideoProcessing.VideoManagement.Application.Configuration;
 using VideoProcessing.VideoManagement.Application.Models.Mappers;
 using VideoProcessing.VideoManagement.Application.Models.ResponseModels;
 using VideoProcessing.VideoManagement.Application.Ports;
+using VideoProcessing.VideoManagement.Application.Services;
 using VideoProcessing.VideoManagement.Domain.Enums;
 
 namespace VideoProcessing.VideoManagement.Application.UseCases.GetVideoById;
@@ -11,6 +12,7 @@ namespace VideoProcessing.VideoManagement.Application.UseCases.GetVideoById;
 public class GetVideoByIdUseCase(
     IVideoRepository repository,
     IVideoChunkRepository chunkRepository,
+    IChunkProgressCalculator chunkProgressCalculator,
     IS3PresignedUrlService s3PresignedUrlService,
     IOptions<S3Options> s3Options,
     ILogger<GetVideoByIdUseCase> logger) : IGetVideoByIdUseCase
@@ -23,11 +25,18 @@ public class GetVideoByIdUseCase(
 
         var response = VideoResponseModelMapper.ToResponseModel(video);
 
-        var chunksProcessed = await chunkRepository.CountProcessedAsync(videoId, ct);
-        var computedFromChunks = ComputeProgressPercent(video.ParallelChunks ?? 0, chunksProcessed);
+        var summaryTask = chunkRepository.GetStatusSummaryAsync(videoId, ct);
+        var chunksTask = chunkRepository.GetChunksAsync(videoId, ct);
+        await Task.WhenAll(summaryTask, chunksTask).ConfigureAwait(false);
+        var summary = await summaryTask.ConfigureAwait(false);
+        var chunks = await chunksTask.ConfigureAwait(false);
+
+        var progressResult = chunkProgressCalculator.Calculate(video.Status, summary);
         var progressPercent = video.Status == VideoStatus.Completed
             ? 100
-            : Math.Max(computedFromChunks, video.ProgressPercent);
+            : progressResult.HasChunks
+                ? progressResult.ProgressPercent
+                : video.ProgressPercent;
 
         string? zipUrl = null;
         if (!string.IsNullOrEmpty(video.ZipKey) && !string.IsNullOrEmpty(video.ZipBucket))
@@ -43,18 +52,28 @@ public class GetVideoByIdUseCase(
             }
         }
 
+        ChunksSummaryResponseModel? chunksSummaryModel = null;
+        if (summary is not null && summary.Total > 0)
+            chunksSummaryModel = new ChunksSummaryResponseModel(
+                summary.Total, summary.Completed, summary.Processing, summary.Failed, summary.Pending);
+
+        IReadOnlyList<ChunkItemResponseModel>? chunkItems = null;
+        if (chunks is { Count: > 0 })
+            chunkItems = chunks.Select(c => new ChunkItemResponseModel(c.ChunkId, c.StartSec, c.EndSec, c.Status)).ToList();
+
         return response with
         {
             ProgressPercent = progressPercent,
             ZipUrl = zipUrl,
-            ZipFileName = video.ZipFileName ?? response.ZipFileName
+            ZipFileName = video.ZipFileName ?? response.ZipFileName,
+            CurrentStage = progressResult.CurrentStage,
+            TotalChunks = summary?.Total > 0 ? summary.Total : null,
+            CompletedChunks = summary?.Total > 0 ? summary.Completed : null,
+            ProcessingChunks = summary?.Total > 0 ? summary.Processing : null,
+            FailedChunks = summary?.Total > 0 ? summary.Failed : null,
+            PendingChunks = summary?.Total > 0 ? summary.Pending : null,
+            ChunksSummary = chunksSummaryModel,
+            Chunks = chunkItems
         };
-    }
-
-    private static int ComputeProgressPercent(int parallelChunks, int chunksProcessed)
-    {
-        var divisor = parallelChunks > 0 ? parallelChunks : 1;
-        var percent = (int)Math.Floor((chunksProcessed * 100.0) / divisor);
-        return Math.Min(100, percent);
     }
 }

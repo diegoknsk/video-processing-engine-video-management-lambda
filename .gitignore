@@ -61,3 +61,11 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# SonarCloud / SonarQube
+.sonarqube/
+**/.sonarqube/
+**/out/.sonar/
+.scannerwork/
+**/.scannerwork/
+coverage.opencover.xml

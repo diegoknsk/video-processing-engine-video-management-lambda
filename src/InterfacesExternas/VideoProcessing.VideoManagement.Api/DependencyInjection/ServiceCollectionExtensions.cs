@@ -14,6 +14,7 @@ using VideoProcessing.VideoManagement.Infra.Data.Repositories;
 using VideoProcessing.VideoManagement.Infra.Data.Services;
 using FluentValidation;
 using VideoProcessing.VideoManagement.Application.Models.InputModels;
+using VideoProcessing.VideoManagement.Application.Services;
 using VideoProcessing.VideoManagement.Application.UseCases.GetVideoById;
 using VideoProcessing.VideoManagement.Application.UseCases.ListVideos;
 using VideoProcessing.VideoManagement.Application.UseCases.UpdateVideo;
@@ -74,6 +75,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton(new AmazonLambdaClient());
         services.AddScoped<IVideoRepository, VideoRepository>();
         services.AddScoped<IVideoChunkRepository, VideoChunkRepository>();
+
+        // Application: Services
+        services.AddSingleton<IChunkProgressCalculator, ChunkProgressCalculator>();
 
         // Infra.Data: Services
         services.AddScoped<IGetUserEmailService, CognitoUserEmailService>();

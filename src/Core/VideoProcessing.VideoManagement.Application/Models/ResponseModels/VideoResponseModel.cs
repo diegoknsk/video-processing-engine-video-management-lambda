@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Text.Json.Serialization;
 using VideoProcessing.VideoManagement.Domain.Enums;
 
 namespace VideoProcessing.VideoManagement.Application.Models.ResponseModels;
@@ -135,6 +136,46 @@ public record VideoResponseModel
     /// <summary>Resumo de processamento com chunks.</summary>
     [Description("Resumo de processamento")]
     public ProcessingSummaryResponseModel? ProcessingSummary { get; init; }
+
+    /// <summary>Stage atual amigável (ex.: "Processando chunks").</summary>
+    [Description("Stage atual")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? CurrentStage { get; init; }
+
+    /// <summary>Total de chunks (excluindo finalize).</summary>
+    [Description("Total de chunks")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? TotalChunks { get; init; }
+
+    /// <summary>Chunks concluídos.</summary>
+    [Description("Chunks concluídos")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? CompletedChunks { get; init; }
+
+    /// <summary>Chunks em processamento.</summary>
+    [Description("Chunks em processamento")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? ProcessingChunks { get; init; }
+
+    /// <summary>Chunks com falha.</summary>
+    [Description("Chunks com falha")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? FailedChunks { get; init; }
+
+    /// <summary>Chunks pendentes.</summary>
+    [Description("Chunks pendentes")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? PendingChunks { get; init; }
+
+    /// <summary>Resumo de contagem por status (FanOut).</summary>
+    [Description("Resumo de chunks")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ChunksSummaryResponseModel? ChunksSummary { get; init; }
+
+    /// <summary>Lista resumida de chunks (apenas GET /videos/{id}).</summary>
+    [Description("Lista de chunks")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<ChunkItemResponseModel>? Chunks { get; init; }
 
     /// <summary>Data/hora de início do processamento.</summary>
     [Description("Início do processamento")]
