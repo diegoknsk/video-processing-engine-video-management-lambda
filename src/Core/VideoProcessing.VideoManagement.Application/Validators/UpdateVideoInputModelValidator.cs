@@ -14,7 +14,8 @@ public class UpdateVideoInputModelValidator : AbstractValidator<UpdateVideoInput
             .Must(x => x.Status != null || x.ProgressPercent != null || x.ErrorMessage != null
                 || x.ErrorCode != null || x.FramesPrefix != null || x.S3KeyZip != null
                 || x.S3BucketFrames != null || x.S3BucketZip != null || x.StepExecutionArn != null
-                || x.ParallelChunks != null || x.ProcessingStartedAt != null || (x.ProcessingSummary?.Chunks != null && x.ProcessingSummary.Chunks.Count > 0))
+                || x.ParallelChunks != null || x.ProcessingStartedAt != null || x.Chunk != null
+                || (x.ProcessingSummary?.Chunks != null && x.ProcessingSummary.Chunks.Count > 0))
             .WithMessage("Pelo menos um campo de atualização deve ser informado.");
 
         RuleFor(x => x.ProgressPercent)
@@ -39,5 +40,17 @@ public class UpdateVideoInputModelValidator : AbstractValidator<UpdateVideoInput
                     .GreaterThan(0).WithMessage("IntervalSec deve ser > 0.");
             })
             .When(x => x.ProcessingSummary?.Chunks != null && x.ProcessingSummary.Chunks.Count > 0);
+
+        When(x => x.Chunk != null, () =>
+        {
+            RuleFor(x => x.Chunk!.ChunkId)
+                .NotEmpty().WithMessage("ChunkId não pode ser vazio.");
+            RuleFor(x => x.Chunk!.StartSec)
+                .GreaterThanOrEqualTo(0).WithMessage("StartSec deve ser >= 0.");
+            RuleFor(x => x.Chunk!.EndSec)
+                .GreaterThan(x => x.Chunk!.StartSec).WithMessage("EndSec deve ser maior que StartSec.");
+            RuleFor(x => x.Chunk!.IntervalSec)
+                .GreaterThan(0).WithMessage("IntervalSec deve ser > 0.");
+        });
     }
 }

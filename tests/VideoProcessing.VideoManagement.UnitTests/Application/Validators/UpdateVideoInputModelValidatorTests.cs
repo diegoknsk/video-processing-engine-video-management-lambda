@@ -227,4 +227,59 @@ public class UpdateVideoInputModelValidatorTests
 
         result.IsValid.Should().BeTrue();
     }
+
+    [Fact]
+    public void Validate_UserIdAndChunkSingularValid_ShouldPass()
+    {
+        var input = new UpdateVideoInputModel
+        {
+            UserId = Guid.NewGuid(),
+            Chunk = new ChunkInfoInputModel { ChunkId = "chunk-1", StartSec = 0, EndSec = 30, IntervalSec = 2 }
+        };
+
+        var result = _validator.Validate(input);
+
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Validate_ChunkSingularWithEmptyChunkId_ShouldFail()
+    {
+        var input = new UpdateVideoInputModel
+        {
+            UserId = Guid.NewGuid(),
+            Chunk = new ChunkInfoInputModel { ChunkId = "", StartSec = 0, EndSec = 10, IntervalSec = 1 }
+        };
+
+        var result = _validator.Validate(input);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.ErrorMessage != null && e.ErrorMessage.Contains("ChunkId"));
+    }
+
+    [Fact]
+    public void Validate_ChunkSingularWithEndSecLessThanOrEqualStartSec_ShouldFail()
+    {
+        var input = new UpdateVideoInputModel
+        {
+            UserId = Guid.NewGuid(),
+            Chunk = new ChunkInfoInputModel { ChunkId = "c1", StartSec = 20, EndSec = 20, IntervalSec = 1 }
+        };
+
+        var result = _validator.Validate(input);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.ErrorMessage != null && e.ErrorMessage.Contains("EndSec"));
+    }
+
+    [Fact]
+    public void Validate_NoUpdateFieldAndChunkNull_ShouldFailWithAtLeastOneFieldMessage()
+    {
+        var input = new UpdateVideoInputModel { UserId = Guid.NewGuid() };
+
+        var result = _validator.Validate(input);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.ErrorMessage == "Pelo menos um campo de atualização deve ser informado.");
+    }
 }

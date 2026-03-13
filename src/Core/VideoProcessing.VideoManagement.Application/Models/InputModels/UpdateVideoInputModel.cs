@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Text.Json.Serialization;
 using VideoProcessing.VideoManagement.Domain.Enums;
 
 namespace VideoProcessing.VideoManagement.Application.Models.InputModels;
@@ -72,4 +73,9 @@ public record UpdateVideoInputModel
     /// <summary>Resumo de processamento com chunks (merge incremental).</summary>
     [Description("Resumo de processamento com chunks")]
     public ProcessingSummaryInputModel? ProcessingSummary { get; init; }
+
+    /// <summary>Chunk singular processado (enviado pelo Step Functions por iteração do Map).</summary>
+    [JsonPropertyName("chunk")]
+    [Description("Chunk singular processado (enviado pelo Step Functions por iteração do Map)")]
+    public ChunkInfoInputModel? Chunk { get; init; }
 }

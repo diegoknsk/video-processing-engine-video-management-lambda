@@ -67,4 +67,33 @@ public class UpdateVideoLambdaEventDeserializationTests
         result.S3BucketZip.Should().Be("my-bucket-zip");
         result.StepExecutionArn.Should().Be("arn:aws:states:us-east-1:123456789012:execution:MyStateMachine:exec-123");
     }
+
+    [Fact]
+    public void Deserialize_PayloadWithChunkSingular_ShouldMapChunkCorrectly()
+    {
+        var json = """
+            {
+              "videoId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+              "userId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+              "status": 2,
+              "chunk": {
+                "chunkId": "chunk-001",
+                "startSec": 23,
+                "endSec": 45,
+                "intervalSec": 5,
+                "framesPrefix": "videos/frames/chunk-001/",
+                "manifestPrefix": "videos/manifest/chunk-001/"
+              }
+            }
+            """;
+        var result = JsonSerializer.Deserialize<UpdateVideoLambdaEvent>(json, JsonOptions);
+        result.Should().NotBeNull();
+        result!.Chunk.Should().NotBeNull();
+        result.Chunk!.ChunkId.Should().Be("chunk-001");
+        result.Chunk.StartSec.Should().Be(23);
+        result.Chunk.EndSec.Should().Be(45);
+        result.Chunk.IntervalSec.Should().Be(5);
+        result.Chunk.FramesPrefix.Should().Be("videos/frames/chunk-001/");
+        result.Chunk.ManifestPrefix.Should().Be("videos/manifest/chunk-001/");
+    }
 }
