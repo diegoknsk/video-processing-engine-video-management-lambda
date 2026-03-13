@@ -181,4 +181,73 @@ public class GetVideoByIdUseCaseTests
         result.Should().NotBeNull();
         result!.ZipUrl.Should().BeNull();
     }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenStoredProgressPercent50AndChunksEmpty_ShouldReturnProgressPercent50()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        video.UpdateStatus(VideoStatus.ProcessingImages);
+        video.SetProgress(50);
+        video.SetParallelChunks(4);
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
+        _chunkRepositoryMock.Setup(c => c.CountProcessedAsync(video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(0);
+
+        var result = await _sut.ExecuteAsync(userId.ToString(), video.VideoId.ToString(), CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.ProgressPercent.Should().Be(50);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenComputedFromChunksExceedsStoredProgress_ShouldReturnComputedValue()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        video.UpdateStatus(VideoStatus.ProcessingImages);
+        video.SetProgress(30);
+        video.SetParallelChunks(4);
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
+        _chunkRepositoryMock.Setup(c => c.CountProcessedAsync(video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(2);
+
+        var result = await _sut.ExecuteAsync(userId.ToString(), video.VideoId.ToString(), CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.ProgressPercent.Should().Be(50);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenStatusCompletedIgnoresStoredProgressAndChunks_ShouldReturn100()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        video.SetParallelChunks(4);
+        video.MarkAsCompleted();
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
+        _chunkRepositoryMock.Setup(c => c.CountProcessedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(0);
+
+        var result = await _sut.ExecuteAsync(userId.ToString(), video.VideoId.ToString(), CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.ProgressPercent.Should().Be(100);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenStoredProgressZeroAndChunksEmptyAndParallelChunksNull_ShouldReturnProgressPercent0()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        video.UpdateStatus(VideoStatus.ProcessingImages);
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
+        _chunkRepositoryMock.Setup(c => c.CountProcessedAsync(video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(0);
+
+        var result = await _sut.ExecuteAsync(userId.ToString(), video.VideoId.ToString(), CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.ProgressPercent.Should().Be(0);
+    }
 }

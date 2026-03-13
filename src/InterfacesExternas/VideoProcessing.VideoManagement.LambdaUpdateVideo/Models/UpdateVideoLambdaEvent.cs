@@ -12,4 +12,8 @@ public record UpdateVideoLambdaEvent : UpdateVideoInputModel
     /// <summary>Identificador do vídeo a atualizar (obrigatório). Na API vem na rota; na Lambda vem no payload.</summary>
     [JsonPropertyName("videoId")]
     public Guid VideoId { get; init; }
+
+    /// <summary>Metadados de finalização, presentes apenas em eventos de conclusão do processamento.</summary>
+    [JsonPropertyName("finalize")]
+    public UpdateVideoFinalizeInfo? FinalizeInfo { get; init; }
 }

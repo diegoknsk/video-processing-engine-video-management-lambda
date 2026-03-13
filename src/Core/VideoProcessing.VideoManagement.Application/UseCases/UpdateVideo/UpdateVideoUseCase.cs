@@ -76,6 +76,31 @@ public class UpdateVideoUseCase(
                 }
             }
         }
+        else if (merged.Status == Domain.Enums.VideoStatus.Completed || merged.Status == Domain.Enums.VideoStatus.GeneratingZip)
+        {
+            try
+            {
+                var finalizationChunk = new VideoChunk(
+                    ChunkId: "finalize",
+                    VideoId: videoId.ToString(),
+                    Status: merged.Status == Domain.Enums.VideoStatus.Completed ? "completed" : "processing",
+                    StartSec: 0,
+                    EndSec: 0,
+                    IntervalSec: 0,
+                    ManifestPrefix: null,
+                    FramesPrefix: string.IsNullOrEmpty(merged.FramesPrefix) ? null : merged.FramesPrefix,
+                    ProcessedAt: merged.Status == Domain.Enums.VideoStatus.Completed ? DateTime.UtcNow : null,
+                    CreatedAt: DateTime.UtcNow);
+                await chunkRepository.UpsertAsync(finalizationChunk, ct);
+                logger.LogInformation(
+                    "Chunk de finalização inserido para VideoId: {VideoId}, Status: {Status}",
+                    videoId, merged.Status);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Falha ao persistir chunk de finalização do vídeo {VideoId}; atualização principal mantida.", videoId);
+            }
+        }
 
         return VideoResponseModelMapper.ToResponseModel(updated);
     }
