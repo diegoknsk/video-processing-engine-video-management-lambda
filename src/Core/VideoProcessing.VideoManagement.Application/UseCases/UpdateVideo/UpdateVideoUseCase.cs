@@ -78,20 +78,19 @@ public class UpdateVideoUseCase(
         }
         else if (input.Chunk is { } singleChunk)
         {
-            var chunkStatus = merged.Status == Domain.Enums.VideoStatus.Completed ? "completed" : "processing";
-            var processedAt = chunkStatus == "completed" ? DateTime.UtcNow : (DateTime?)null;
+            // Fan-out: a mensagem só é enviada após o chunk concluir — status é sempre "completed".
             try
             {
                 var videoChunk = new VideoChunk(
                     ChunkId: singleChunk.ChunkId,
                     VideoId: videoId.ToString(),
-                    Status: chunkStatus,
+                    Status: VideoChunkConstants.StatusCompleted,
                     StartSec: singleChunk.StartSec,
                     EndSec: singleChunk.EndSec,
                     IntervalSec: singleChunk.IntervalSec,
                     ManifestPrefix: string.IsNullOrEmpty(singleChunk.ManifestPrefix) ? null : singleChunk.ManifestPrefix,
                     FramesPrefix: string.IsNullOrEmpty(singleChunk.FramesPrefix) ? null : singleChunk.FramesPrefix,
-                    ProcessedAt: processedAt,
+                    ProcessedAt: DateTime.UtcNow,
                     CreatedAt: DateTime.UtcNow);
                 await chunkRepository.UpsertAsync(videoChunk, ct);
             }
