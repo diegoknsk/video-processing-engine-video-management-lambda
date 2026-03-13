@@ -18,7 +18,7 @@ namespace VideoProcessing.VideoManagement.Api.Services;
 /// Implementa IUpdateVideoUseCase invocando a Lambda Update Video (proxy). Mantém o mesmo contrato para o cliente (PATCH).
 /// </summary>
 public class UpdateVideoLambdaProxyUseCase(
-    AmazonLambdaClient lambdaClient,
+    IAmazonLambda lambdaClient,
     IOptions<LambdaUpdateVideoOptions> options) : IUpdateVideoUseCase
 {
     private static readonly JsonSerializerOptions JsonOptions = new()

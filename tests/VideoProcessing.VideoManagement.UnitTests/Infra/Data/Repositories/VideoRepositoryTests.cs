@@ -5,6 +5,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Moq;
 using VideoProcessing.VideoManagement.Domain.Entities;
+using VideoProcessing.VideoManagement.Domain.Enums;
 using VideoProcessing.VideoManagement.Domain.Exceptions;
 using VideoProcessing.VideoManagement.Infra.CrossCutting.Configuration;
 using VideoProcessing.VideoManagement.Infra.Data.Repositories;
@@ -330,5 +331,147 @@ public class VideoRepositoryTests
         var act = () => _repository.UpdateAsync(video);
 
         await act.Should().ThrowAsync<VideoUpdateConflictException>();
+    }
+
+    [Fact]
+    public async Task CreateAsync_WhenConditionalCheckFailed_ThrowsInvalidOperationException()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+
+        _dynamoMock.Setup(x => x.PutItemAsync(It.IsAny<PutItemRequest>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ConditionalCheckFailedException("Already exists"));
+
+        var act = () => _repository.CreateAsync(video, null);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*already exists*");
+    }
+
+    [Fact]
+    public async Task GetByUserIdAsync_WithPaginationToken_ShouldSendExclusiveStartKey()
+    {
+        var userId = Guid.NewGuid();
+        var videoId = Guid.NewGuid();
+        var lastKey = new Dictionary<string, AttributeValue> { ["pk"] = new AttributeValue { S = "token-key" } };
+        var tokenJson = System.Text.Json.JsonSerializer.Serialize(lastKey);
+        var paginationToken = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(tokenJson));
+
+        var item = BuildDynamoItem(userId, videoId);
+
+        _dynamoMock.Setup(x => x.QueryAsync(It.IsAny<QueryRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new QueryResponse { Items = [item] });
+
+        var (items, _) = await _repository.GetByUserIdAsync(userId.ToString(), 10, paginationToken);
+
+        items.Should().HaveCount(1);
+        _dynamoMock.Verify(x => x.QueryAsync(
+            It.Is<QueryRequest>(r => r.ExclusiveStartKey != null && r.ExclusiveStartKey.Count > 0),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetByUserIdAsync_WithInvalidPaginationToken_ShouldIgnoreAndReturnResults()
+    {
+        var userId = Guid.NewGuid();
+        var videoId = Guid.NewGuid();
+        var item = BuildDynamoItem(userId, videoId);
+
+        _dynamoMock.Setup(x => x.QueryAsync(It.IsAny<QueryRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new QueryResponse { Items = [item] });
+
+        var (items, _) = await _repository.GetByUserIdAsync(userId.ToString(), 10, "invalid-base64-token!!!");
+
+        items.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WhenVideoHasErrorMessage_ShouldIncludeErrorFieldsInExpression()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        video.MarkAsFailed("Processing error", "ERR_001");
+
+        var attributes = BuildDynamoItem(userId, video.VideoId, status: "Failed");
+
+        _dynamoMock.Setup(x => x.UpdateItemAsync(It.IsAny<UpdateItemRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new UpdateItemResponse { Attributes = attributes });
+
+        var result = await _repository.UpdateAsync(video);
+
+        _dynamoMock.Verify(x => x.UpdateItemAsync(
+            It.Is<UpdateItemRequest>(r =>
+                r.ExpressionAttributeValues.ContainsKey(":errMsg") &&
+                r.ExpressionAttributeValues.ContainsKey(":errCode")),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WhenVideoHasProcessingTimestamps_ShouldIncludeTimestampFields()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        video.UpdateStatus(VideoStatus.ProcessingImages);
+
+        var attributes = BuildDynamoItem(userId, video.VideoId, status: "ProcessingImages");
+
+        _dynamoMock.Setup(x => x.UpdateItemAsync(It.IsAny<UpdateItemRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new UpdateItemResponse { Attributes = attributes });
+
+        await _repository.UpdateAsync(video);
+
+        _dynamoMock.Verify(x => x.UpdateItemAsync(
+            It.Is<UpdateItemRequest>(r =>
+                r.ExpressionAttributeValues.ContainsKey(":processingStartedAt")),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WhenVideoHasZipFields_ShouldIncludeZipInExpression()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        video.SetS3Output("zip-bucket", "zip-key", "frames-bucket", "frames-prefix");
+
+        var attributes = BuildDynamoItem(userId, video.VideoId);
+
+        _dynamoMock.Setup(x => x.UpdateItemAsync(It.IsAny<UpdateItemRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new UpdateItemResponse { Attributes = attributes });
+
+        await _repository.UpdateAsync(video);
+
+        _dynamoMock.Verify(x => x.UpdateItemAsync(
+            It.Is<UpdateItemRequest>(r =>
+                r.ExpressionAttributeValues.ContainsKey(":zipBucket") &&
+                r.ExpressionAttributeValues.ContainsKey(":zipKey")),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetByClientRequestIdAsync_WithEmptyClientRequestId_ShouldReturnNullWithoutQuery()
+    {
+        var result = await _repository.GetByClientRequestIdAsync(Guid.NewGuid().ToString(), null!);
+
+        result.Should().BeNull();
+        _dynamoMock.Verify(x => x.QueryAsync(It.IsAny<QueryRequest>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    private static Dictionary<string, AttributeValue> BuildDynamoItem(
+        Guid userId, Guid videoId, string status = "UploadPending")
+    {
+        return new Dictionary<string, AttributeValue>
+        {
+            ["pk"] = new AttributeValue { S = $"USER#{userId}" },
+            ["sk"] = new AttributeValue { S = $"VIDEO#{videoId}" },
+            ["videoId"] = new AttributeValue { S = videoId.ToString() },
+            ["userId"] = new AttributeValue { S = userId.ToString() },
+            ["originalFileName"] = new AttributeValue { S = "test.mp4" },
+            ["contentType"] = new AttributeValue { S = "video/mp4" },
+            ["sizeBytes"] = new AttributeValue { N = "1024" },
+            ["status"] = new AttributeValue { S = status },
+            ["processingMode"] = new AttributeValue { S = "SingleLambda" },
+            ["progressPercent"] = new AttributeValue { N = "0" },
+            ["createdAt"] = new AttributeValue { S = DateTime.UtcNow.ToString("O") }
+        };
     }
 }

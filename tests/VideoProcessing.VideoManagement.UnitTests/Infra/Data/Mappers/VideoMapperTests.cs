@@ -153,4 +153,99 @@ public class VideoMapperTests
 
         video.UserEmail.Should().BeNull();
     }
+
+    [Fact]
+    public void ToDomain_WhenEntityHasLegacyStatusPending_MapsToUploadPending()
+    {
+        var entity = BuildMinimalEntity(status: "Pending");
+        var video = VideoMapper.ToDomain(entity);
+        video.Status.Should().Be(VideoStatus.UploadPending);
+    }
+
+    [Fact]
+    public void ToDomain_WhenEntityHasLegacyStatusUploading_MapsToUploadPending()
+    {
+        var entity = BuildMinimalEntity(status: "Uploading");
+        var video = VideoMapper.ToDomain(entity);
+        video.Status.Should().Be(VideoStatus.UploadPending);
+    }
+
+    [Fact]
+    public void ToDomain_WhenEntityHasLegacyStatusProcessing_MapsToProcessingImages()
+    {
+        var entity = BuildMinimalEntity(status: "Processing");
+        var video = VideoMapper.ToDomain(entity);
+        video.Status.Should().Be(VideoStatus.ProcessingImages);
+    }
+
+    [Fact]
+    public void ToDomain_WhenEntityHasUnknownStatus_ThrowsArgumentException()
+    {
+        var entity = BuildMinimalEntity(status: "UnknownInvalidStatus");
+        var act = () => VideoMapper.ToDomain(entity);
+        act.Should().Throw<ArgumentException>().WithMessage("*UnknownInvalidStatus*");
+    }
+
+    [Fact]
+    public void ToDomain_WhenProcessingSummaryJsonIsInvalid_ShouldReturnNullSummary()
+    {
+        var entity = BuildMinimalEntity();
+        entity.ProcessingSummaryJson = "not-valid-json{{{";
+        var video = VideoMapper.ToDomain(entity);
+        video.ProcessingSummary.Should().BeNull();
+    }
+
+    [Fact]
+    public void ToDomain_WhenProcessingSummaryJsonIsEmpty_ShouldReturnNullSummary()
+    {
+        var entity = BuildMinimalEntity();
+        entity.ProcessingSummaryJson = null;
+        var video = VideoMapper.ToDomain(entity);
+        video.ProcessingSummary.Should().BeNull();
+    }
+
+    [Fact]
+    public void ToEntity_WhenClientRequestIdProvided_ShouldSetGsi1Fields()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1000);
+
+        var entity = VideoMapper.ToEntity(video, "req-abc-123");
+
+        entity.ClientRequestId.Should().Be("req-abc-123");
+        entity.Gsi1Pk.Should().Be($"USER#{userId}");
+        entity.Gsi1Sk.Should().Be("CLIENT_REQUEST#req-abc-123");
+    }
+
+    [Fact]
+    public void ToEntity_WhenNoClientRequestId_ShouldNotSetGsi1Fields()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1000);
+
+        var entity = VideoMapper.ToEntity(video, null);
+
+        entity.Gsi1Pk.Should().BeNullOrEmpty();
+        entity.Gsi1Sk.Should().BeNullOrEmpty();
+    }
+
+    private static VideoEntity BuildMinimalEntity(string status = "UploadPending")
+    {
+        var userId = Guid.NewGuid();
+        var videoId = Guid.NewGuid();
+        return new VideoEntity
+        {
+            Pk = $"USER#{userId}",
+            Sk = $"VIDEO#{videoId}",
+            UserId = userId.ToString(),
+            VideoId = videoId.ToString(),
+            OriginalFileName = "test.mp4",
+            ContentType = "video/mp4",
+            SizeBytes = 1024,
+            Status = status,
+            ProcessingMode = "SingleLambda",
+            ProgressPercent = 0,
+            CreatedAt = DateTime.UtcNow.ToString("O")
+        };
+    }
 }
