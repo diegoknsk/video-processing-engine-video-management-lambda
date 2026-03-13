@@ -309,4 +309,71 @@ public class GetVideoByIdUseCaseTests
         result!.ChunksSummary.Should().BeNull();
         result.Chunks.Should().BeNull();
     }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenStatusGeneratingZipAndSummaryNull_ShouldDisplayProcessingImages()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        video.UpdateStatus(VideoStatus.GeneratingZip);
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
+        _chunkRepositoryMock.Setup(c => c.GetStatusSummaryAsync(video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync((ChunkStatusSummary?)null);
+
+        var result = await _sut.ExecuteAsync(userId.ToString(), video.VideoId.ToString(), CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.Status.Should().Be(VideoStatus.ProcessingImages);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenStatusGeneratingZipAndSummaryTotalZero_ShouldDisplayProcessingImages()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        video.UpdateStatus(VideoStatus.GeneratingZip);
+
+        var summary = new ChunkStatusSummary(0, 0, 0, 0, 0, null);
+        _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
+        _chunkRepositoryMock.Setup(c => c.GetStatusSummaryAsync(video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(summary);
+
+        var result = await _sut.ExecuteAsync(userId.ToString(), video.VideoId.ToString(), CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.Status.Should().Be(VideoStatus.ProcessingImages);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenStatusGeneratingZipAndSomeChunksStillProcessing_ShouldDisplayProcessingImages()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        video.UpdateStatus(VideoStatus.GeneratingZip);
+
+        var summary = new ChunkStatusSummary(4, 3, 1, 0, 0, null);
+        _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
+        _chunkRepositoryMock.Setup(c => c.GetStatusSummaryAsync(video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(summary);
+
+        var result = await _sut.ExecuteAsync(userId.ToString(), video.VideoId.ToString(), CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.Status.Should().Be(VideoStatus.ProcessingImages);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenStatusGeneratingZipAndAllChunksDone_ShouldDisplayGeneratingZip()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        video.UpdateStatus(VideoStatus.GeneratingZip);
+
+        var summary = new ChunkStatusSummary(4, 4, 0, 0, 0, null);
+        _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
+        _chunkRepositoryMock.Setup(c => c.GetStatusSummaryAsync(video.VideoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(summary);
+
+        var result = await _sut.ExecuteAsync(userId.ToString(), video.VideoId.ToString(), CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.Status.Should().Be(VideoStatus.GeneratingZip);
+    }
 }
