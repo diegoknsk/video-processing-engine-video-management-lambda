@@ -80,9 +80,8 @@ public class UpdateVideoUseCase(
         {
             try
             {
-                var isCompleted = merged.Status == Domain.Enums.VideoStatus.Completed;
-                var chunkStatus = isCompleted ? VideoChunkConstants.StatusCompleted : VideoChunkConstants.StatusProcessing;
-                var processedAt = isCompleted ? DateTime.UtcNow : (DateTime?)null;
+                var chunkStatus = VideoChunkConstants.StatusCompleted;
+                var processedAt = (DateTime?)DateTime.UtcNow;
                 var videoChunk = new VideoChunk(
                     ChunkId: singleChunk.ChunkId,
                     VideoId: videoId.ToString(),

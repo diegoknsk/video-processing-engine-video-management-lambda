@@ -63,12 +63,12 @@ public class ChunkProgressCalculatorTests
     }
 
     [Fact]
-    public void Calculate_WhenAllChunksCompletedAndFinalizeNull_Returns97AndGerandoZip()
+    public void Calculate_WhenAllChunksCompletedAndFinalizeNull_Returns100AndGerandoZip()
     {
         var summary = new ChunkStatusSummary(3, 3, 0, 0, 0, null);
         var result = _sut.Calculate(VideoStatus.GeneratingZip, summary);
         result.HasChunks.Should().BeTrue();
-        result.ProgressPercent.Should().Be(97);
+        result.ProgressPercent.Should().Be(100);
         result.CurrentStage.Should().Be("Gerando ZIP");
     }
 
@@ -106,11 +106,11 @@ public class ChunkProgressCalculatorTests
     }
 
     [Fact]
-    public void Calculate_WhenBasePercentAbove94_CapsAt94()
+    public void Calculate_WhenAllTenChunksCompleted_Returns100()
     {
         var summary = new ChunkStatusSummary(10, 10, 0, 0, 0, null);
         var result = _sut.Calculate(VideoStatus.GeneratingZip, summary);
-        result.ProgressPercent.Should().Be(97);
+        result.ProgressPercent.Should().Be(100);
     }
 
     [Fact]
@@ -146,5 +146,41 @@ public class ChunkProgressCalculatorTests
         var unknownStatus = (VideoStatus)unknownStatusValue;
         var result = _sut.Calculate(unknownStatus, null);
         result.CurrentStage.Should().Be(unknownStatusValue.ToString());
+    }
+
+    [Theory]
+    [InlineData(0, 10, 0)]
+    [InlineData(1, 10, 10)]
+    [InlineData(3, 10, 30)]
+    [InlineData(5, 10, 50)]
+    [InlineData(7, 10, 70)]
+    [InlineData(10, 10, 100)]
+    [InlineData(1, 3, 33)]
+    [InlineData(2, 3, 66)]
+    [InlineData(3, 3, 100)]
+    public void Calculate_LinearProgressFormula_ReturnsExpectedPercent(int completed, int total, int expected)
+    {
+        var pending = total - completed;
+        var summary = new ChunkStatusSummary(total, completed, 0, 0, pending, null);
+        var result = _sut.Calculate(VideoStatus.ProcessingImages, summary);
+        result.HasChunks.Should().BeTrue();
+        result.ProgressPercent.Should().Be(expected);
+    }
+
+    [Fact]
+    public void Calculate_WhenProcessingImagesAllChunksDone_Returns100WithoutCap()
+    {
+        var summary = new ChunkStatusSummary(5, 5, 0, 0, 0, null);
+        var result = _sut.Calculate(VideoStatus.ProcessingImages, summary);
+        result.ProgressPercent.Should().Be(100);
+    }
+
+    [Fact]
+    public void Calculate_WhenGeneratingZipPartialChunks_ReturnsLinearPercent()
+    {
+        var summary = new ChunkStatusSummary(4, 2, 2, 0, 0, null);
+        var result = _sut.Calculate(VideoStatus.GeneratingZip, summary);
+        result.ProgressPercent.Should().Be(50);
+        result.CurrentStage.Should().Be("Gerando ZIP");
     }
 }

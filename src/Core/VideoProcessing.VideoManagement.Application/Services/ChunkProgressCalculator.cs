@@ -34,15 +34,7 @@ public sealed class ChunkProgressCalculator : IChunkProgressCalculator
         if (string.Equals(summary.FinalizeStatus, "completed", StringComparison.OrdinalIgnoreCase))
             return 100;
 
-        var basePercent = (int)Math.Floor((summary.Completed * 100.0) / total);
-
-        if (videoStatus == VideoStatus.Failed)
-            return Math.Min(100, basePercent); // mantém percentual até a falha, sem cap
-
-        if (basePercent >= 95)
-            return 97; // todos chunks done, finalize em andamento
-
-        return Math.Min(94, basePercent);
+        return (int)Math.Floor((summary.Completed * 100.0) / total);
     }
 
     private static string ComputeCurrentStage(VideoStatus videoStatus, bool hasChunks)
