@@ -220,4 +220,66 @@ public class UpdateVideoEventAdapterTests
         finalizeInfo.VideoId.Should().BeNull();
         finalizeInfo.OrdenaAutomaticamente.Should().BeFalse();
     }
+
+    [Fact]
+    public void FromRawEvent_DirectJsonWithChunkSingular_MapsChunkCorrectly()
+    {
+        const string directJson = """
+            {
+              "videoId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+              "userId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+              "status": 2,
+              "chunk": {
+                "chunkId": "chunk-abc-001",
+                "startSec": 23,
+                "endSec": 45,
+                "intervalSec": 5,
+                "framesPrefix": "videos/frames/chunk-001/",
+                "manifestPrefix": "videos/manifest/chunk-001/"
+              }
+            }
+            """;
+        using var doc = JsonDocument.Parse(directJson);
+        var result = _sut.FromRawEvent(doc);
+        result.Should().HaveCount(1);
+        var evt = result[0];
+        evt.Chunk.Should().NotBeNull();
+        var chunk = evt.Chunk!;
+        chunk.ChunkId.Should().Be("chunk-abc-001");
+        chunk.StartSec.Should().Be(23);
+        chunk.EndSec.Should().Be(45);
+        chunk.IntervalSec.Should().Be(5);
+        chunk.FramesPrefix.Should().Be("videos/frames/chunk-001/");
+        chunk.ManifestPrefix.Should().Be("videos/manifest/chunk-001/");
+        evt.VideoId.Should().Be(Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6"));
+        evt.Status.Should().Be(VideoStatus.GeneratingZip);
+    }
+
+    [Fact]
+    public void FromRawEvent_SqsBodyWithChunkSingular_MapsChunkCorrectly()
+    {
+        const string bodyPayload = """{"videoId":"3fa85f64-5717-4562-b3fc-2c963f66afa6","userId":"7c9e6679-7425-40de-944b-e07fc1f90ae7","status":1,"chunk":{"chunkId":"chunk-sqs-1","startSec":0,"endSec":30,"intervalSec":2}}""";
+        string bodyEscaped = bodyPayload.Replace("\"", "\\\"");
+        string sqsJson = $"{{\"Records\":[{{\"messageId\":\"msg-1\",\"body\":\"{bodyEscaped}\"}}]}}";
+        using var doc = JsonDocument.Parse(sqsJson);
+        var result = _sut.FromRawEvent(doc);
+        result.Should().HaveCount(1);
+        result[0].Chunk.Should().NotBeNull();
+        result[0].Chunk!.ChunkId.Should().Be("chunk-sqs-1");
+        result[0].Chunk.StartSec.Should().Be(0);
+        result[0].Chunk.EndSec.Should().Be(30);
+        result[0].Chunk.IntervalSec.Should().Be(2);
+    }
+
+    [Fact]
+    public void FromRawEvent_DirectJsonWithoutChunk_ChunkIsNull()
+    {
+        const string directJson = """
+            {"videoId":"3fa85f64-5717-4562-b3fc-2c963f66afa6","userId":"7c9e6679-7425-40de-944b-e07fc1f90ae7","status":1}
+            """;
+        using var doc = JsonDocument.Parse(directJson);
+        var result = _sut.FromRawEvent(doc);
+        result.Should().HaveCount(1);
+        result[0].Chunk.Should().BeNull();
+    }
 }

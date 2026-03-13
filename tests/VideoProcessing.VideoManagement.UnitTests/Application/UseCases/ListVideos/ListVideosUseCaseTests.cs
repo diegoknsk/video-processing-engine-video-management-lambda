@@ -1,20 +1,30 @@
 using FluentAssertions;
 using Moq;
+using VideoProcessing.VideoManagement.Application.Models;
 using VideoProcessing.VideoManagement.Application.Ports;
+using VideoProcessing.VideoManagement.Application.Services;
 using VideoProcessing.VideoManagement.Application.UseCases.ListVideos;
 using VideoProcessing.VideoManagement.Domain.Entities;
+using VideoProcessing.VideoManagement.Domain.Enums;
 
 namespace VideoProcessing.VideoManagement.UnitTests.Application.UseCases.ListVideos;
 
 public class ListVideosUseCaseTests
 {
     private readonly Mock<IVideoRepository> _repositoryMock;
+    private readonly Mock<IVideoChunkRepository> _chunkRepositoryMock;
+    private readonly Mock<IChunkProgressCalculator> _chunkProgressCalculatorMock;
     private readonly ListVideosUseCase _sut;
 
     public ListVideosUseCaseTests()
     {
         _repositoryMock = new Mock<IVideoRepository>();
-        _sut = new ListVideosUseCase(_repositoryMock.Object);
+        _chunkRepositoryMock = new Mock<IVideoChunkRepository>();
+        _chunkProgressCalculatorMock = new Mock<IChunkProgressCalculator>();
+        _sut = new ListVideosUseCase(
+            _repositoryMock.Object,
+            _chunkRepositoryMock.Object,
+            _chunkProgressCalculatorMock.Object);
     }
 
     [Fact]
@@ -113,5 +123,50 @@ public class ListVideosUseCaseTests
 
         // Assert
         _repositoryMock.Verify(r => r.GetByUserIdAsync(userId, 25, nextToken, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenFanOutInProgress_ShouldEnrichWithChunksSummaryAndNotExposeChunksList()
+    {
+        var userId = Guid.NewGuid().ToString();
+        var video = new Video(Guid.Parse(userId), "test.mp4", "video/mp4", 1024);
+        video.SetProcessingMode(ProcessingMode.FanOut);
+        video.UpdateStatus(VideoStatus.ProcessingImages);
+
+        var summary = new ChunkStatusSummary(3, 2, 1, 0, 0, null);
+        _repositoryMock.Setup(r => r.GetByUserIdAsync(userId, 50, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new List<Video> { video }, (string?)null));
+        _chunkRepositoryMock.Setup(c => c.GetStatusSummaryAsync(video.VideoId.ToString(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(summary);
+        _chunkProgressCalculatorMock
+            .Setup(x => x.Calculate(It.IsAny<VideoStatus>(), It.Is<ChunkStatusSummary?>(s => s != null)))
+            .Returns(new ChunkProgressResult(66, "Processando chunks", true));
+
+        var result = await _sut.ExecuteAsync(userId, 50, null, CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result.Videos.Should().HaveCount(1);
+        result.Videos[0].ChunksSummary.Should().NotBeNull();
+        result.Videos[0].ChunksSummary!.Total.Should().Be(3);
+        result.Videos[0].Chunks.Should().BeNull();
+        result.Videos[0].ProgressPercent.Should().Be(66);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenFanOutCompleted_ShouldNotCallChunkRepository()
+    {
+        var userId = Guid.NewGuid().ToString();
+        var video = new Video(Guid.Parse(userId), "test.mp4", "video/mp4", 1024);
+        video.SetProcessingMode(ProcessingMode.FanOut);
+        video.MarkAsCompleted();
+
+        _repositoryMock.Setup(r => r.GetByUserIdAsync(userId, 50, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new List<Video> { video }, (string?)null));
+
+        await _sut.ExecuteAsync(userId, 50, null, CancellationToken.None);
+
+        _chunkRepositoryMock.Verify(
+            c => c.GetStatusSummaryAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 }

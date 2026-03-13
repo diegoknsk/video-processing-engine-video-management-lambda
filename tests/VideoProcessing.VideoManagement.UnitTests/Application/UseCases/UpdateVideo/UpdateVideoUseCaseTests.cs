@@ -417,4 +417,126 @@ public class UpdateVideoUseCaseTests
         result!.VideoId.Should().Be(videoId);
         _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Video>(), It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task ExecuteAsync_WithChunkSingularAndStatusProcessingImages_ShouldUpsertChunkWithProcessingStatus_AndNotInsertFinalize()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        var videoId = video.VideoId;
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), videoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
+        _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Video>(), It.IsAny<CancellationToken>())).ReturnsAsync((Video v, CancellationToken _) => v);
+
+        var input = new UpdateVideoInputModel
+        {
+            UserId = userId,
+            Status = VideoStatus.ProcessingImages,
+            Chunk = new ChunkInfoInputModel
+            {
+                ChunkId = "chunk-singular-1",
+                StartSec = 10,
+                EndSec = 30,
+                IntervalSec = 2,
+                FramesPrefix = "frames/",
+                ManifestPrefix = "manifest/"
+            }
+        };
+
+        await _sut.ExecuteAsync(videoId, input, CancellationToken.None);
+
+        _chunkRepositoryMock.Verify(
+            c => c.UpsertAsync(
+                It.Is<VideoChunk>(ch => ch.ChunkId == "chunk-singular-1" && ch.VideoId == videoId.ToString() && ch.Status == "processing" && ch.ProcessedAt == null && ch.StartSec == 10 && ch.EndSec == 30),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+        _chunkRepositoryMock.Verify(
+            c => c.UpsertAsync(It.Is<VideoChunk>(ch => ch.ChunkId == "finalize"), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithChunkSingularAndStatusCompleted_ShouldUpsertChunkWithCompletedStatusAndProcessedAt()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        var videoId = video.VideoId;
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), videoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
+        _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Video>(), It.IsAny<CancellationToken>())).ReturnsAsync((Video v, CancellationToken _) => v);
+
+        var input = new UpdateVideoInputModel
+        {
+            UserId = userId,
+            Status = VideoStatus.Completed,
+            Chunk = new ChunkInfoInputModel { ChunkId = "chunk-done", StartSec = 0, EndSec = 60, IntervalSec = 5 }
+        };
+
+        await _sut.ExecuteAsync(videoId, input, CancellationToken.None);
+
+        _chunkRepositoryMock.Verify(
+            c => c.UpsertAsync(
+                It.Is<VideoChunk>(ch => ch.ChunkId == "chunk-done" && ch.Status == "completed" && ch.ProcessedAt != null),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithChunkSingularAndUpsertThrows_ShouldLogWarningAndStillReturnSuccess()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        var videoId = video.VideoId;
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), videoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
+        _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Video>(), It.IsAny<CancellationToken>())).ReturnsAsync((Video v, CancellationToken _) => v);
+        _chunkRepositoryMock.Setup(c => c.UpsertAsync(It.IsAny<VideoChunk>(), It.IsAny<CancellationToken>())).ThrowsAsync(new InvalidOperationException("DynamoDB error"));
+
+        var input = new UpdateVideoInputModel
+        {
+            UserId = userId,
+            Chunk = new ChunkInfoInputModel { ChunkId = "chunk-fail", StartSec = 0, EndSec = 10, IntervalSec = 1 }
+        };
+
+        var result = await _sut.ExecuteAsync(videoId, input, CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.VideoId.Should().Be(videoId);
+        _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Video>(), It.IsAny<CancellationToken>()), Times.Once);
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Falha ao persistir chunk singular")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithChunkSingularAndStatusGeneratingZip_ShouldNotInsertFinalizeChunk()
+    {
+        var userId = Guid.NewGuid();
+        var video = new Video(userId, "test.mp4", "video/mp4", 1024);
+        var videoId = video.VideoId;
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(userId.ToString(), videoId.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(video);
+        _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Video>(), It.IsAny<CancellationToken>())).ReturnsAsync((Video v, CancellationToken _) => v);
+
+        var input = new UpdateVideoInputModel
+        {
+            UserId = userId,
+            Status = VideoStatus.GeneratingZip,
+            Chunk = new ChunkInfoInputModel { ChunkId = "chunk-zip-1", StartSec = 0, EndSec = 90, IntervalSec = 3 }
+        };
+
+        await _sut.ExecuteAsync(videoId, input, CancellationToken.None);
+
+        _chunkRepositoryMock.Verify(
+            c => c.UpsertAsync(It.Is<VideoChunk>(ch => ch.ChunkId == "chunk-zip-1"), It.IsAny<CancellationToken>()),
+            Times.Once);
+        _chunkRepositoryMock.Verify(
+            c => c.UpsertAsync(It.Is<VideoChunk>(ch => ch.ChunkId == "finalize"), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
 }

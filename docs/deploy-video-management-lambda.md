@@ -25,11 +25,12 @@ O workflow `.github/workflows/deploy-lambda-video-management.yml` automatiza o b
 ## ☁️ Pré-requisitos AWS
 
 1. **Lambda Function**: Deve estar criada (ex: `video-processing-engine-dev-video-management`).
-2. **IAM Permissions**: O usuário do GitHub Actions precisa de:
+2. **IAM — usuário do GitHub Actions**: precisa de:
    - `lambda:UpdateFunctionCode`
    - `lambda:UpdateFunctionConfiguration`
    - `lambda:GetFunctionConfiguration`
    - `lambda:GetFunction`
+3. **IAM — role de execução da Lambda**: a role (ex.: `video-processing-engine-dev-lambda-exec-role`) deve ter permissão na tabela DynamoDB de **chunks** (`video-processing-engine-dev-video-chunks`), pois o GET individual de vídeo usa `dynamodb:Query` nessa tabela. Ver [Permissão DynamoDB — Tabela de Chunks](iam-lambda-exec-role-chunks.md).
 
 ## 🔐 Configuração GitHub
 
