@@ -70,52 +70,31 @@ public class VideoChunkRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOpt
         int total = 0, completed = 0, processing = 0, failed = 0, pending = 0;
         string? finalizeStatus = null;
 
-        var request = new QueryRequest
+        var items = await QueryAllChunkItemsAsync(videoId, "chunkId, #st", ct);
+        foreach (var item in items)
         {
-            TableName = _tableName,
-            KeyConditionExpression = "pk = :pk",
-            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+            var chunkId = item.TryGetValue("chunkId", out var c) ? c.S : null;
+            var status = item.TryGetValue("status", out var s) ? s.S : null;
+
+            if (string.IsNullOrEmpty(chunkId))
+                continue;
+
+            if (chunkId == VideoChunkConstants.FinalizeChunkId)
             {
-                [":pk"] = new AttributeValue { S = $"VIDEO#{videoId}" }
-            },
-            ProjectionExpression = "chunkId, #st",
-            ExpressionAttributeNames = new Dictionary<string, string> { ["#st"] = "status" }
-        };
-
-        Dictionary<string, AttributeValue>? lastKey = null;
-        do
-        {
-            if (lastKey is not null)
-                request.ExclusiveStartKey = lastKey;
-
-            var response = await dynamoDb.QueryAsync(request, ct);
-            foreach (var item in response.Items)
-            {
-                var chunkId = item.TryGetValue("chunkId", out var c) ? c.S : null;
-                var status = item.TryGetValue("status", out var s) ? s.S : null;
-
-                if (string.IsNullOrEmpty(chunkId))
-                    continue;
-
-                if (chunkId == VideoChunkConstants.FinalizeChunkId)
-                {
-                    finalizeStatus = status;
-                    continue;
-                }
-
-                total++;
-                switch (status?.ToLowerInvariant())
-                {
-                    case "completed": completed++; break;
-                    case "processing": processing++; break;
-                    case "failed": failed++; break;
-                    case "pending":
-                    default: pending++; break;
-                }
+                finalizeStatus = status;
+                continue;
             }
 
-            lastKey = response.LastEvaluatedKey?.Count > 0 ? response.LastEvaluatedKey : null;
-        } while (lastKey is not null);
+            total++;
+            switch (status?.ToLowerInvariant())
+            {
+                case "completed": completed++; break;
+                case "processing": processing++; break;
+                case "failed": failed++; break;
+                case "pending":
+                default: pending++; break;
+            }
+        }
 
         return new ChunkStatusSummary(total, completed, processing, failed, pending, finalizeStatus);
     }
@@ -123,7 +102,37 @@ public class VideoChunkRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOpt
     public async Task<IReadOnlyList<VideoChunk>> GetChunksAsync(string videoId, CancellationToken ct = default)
     {
         var list = new List<VideoChunk>();
-        var request = new QueryRequest
+        var projection = "chunkId, #st, startSec, endSec, intervalSec, manifestPrefix, framesPrefix, processedAt, createdAt";
+        var items = await QueryAllChunkItemsAsync(videoId, projection, ct);
+
+        foreach (var item in items)
+        {
+            var chunkId = item.TryGetValue("chunkId", out var c) ? c.S : null;
+            if (string.IsNullOrEmpty(chunkId) || chunkId == VideoChunkConstants.FinalizeChunkId)
+                continue;
+
+            var status = item.TryGetValue("status", out var s) ? s.S : "pending";
+            var startSec = item.TryGetValue("startSec", out var ss) && double.TryParse(ss.N, NumberStyles.Float, CultureInfo.InvariantCulture, out var start) ? start : 0;
+            var endSec = item.TryGetValue("endSec", out var es) && double.TryParse(es.N, NumberStyles.Float, CultureInfo.InvariantCulture, out var end) ? end : 0;
+            var intervalSec = item.TryGetValue("intervalSec", out var isec) && double.TryParse(isec.N, NumberStyles.Float, CultureInfo.InvariantCulture, out var iv) ? iv : 0;
+            var manifestPrefix = item.TryGetValue("manifestPrefix", out var mp) ? mp.S : null;
+            var framesPrefix = item.TryGetValue("framesPrefix", out var fp) ? fp.S : null;
+            DateTime? processedAt = null;
+            if (item.TryGetValue("processedAt", out var pa) && !string.IsNullOrEmpty(pa.S) && DateTime.TryParse(pa.S, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var pat))
+                processedAt = pat;
+            var createdAt = item.TryGetValue("createdAt", out var ca) && DateTime.TryParse(ca.S, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var created)
+                ? created
+                : DateTime.UtcNow;
+
+            list.Add(new VideoChunk(chunkId, videoId, status, startSec, endSec, intervalSec, manifestPrefix, framesPrefix, processedAt, createdAt));
+        }
+
+        return list;
+    }
+
+    private QueryRequest CreateChunksQueryRequest(string videoId, string projectionExpression)
+    {
+        return new QueryRequest
         {
             TableName = _tableName,
             KeyConditionExpression = "pk = :pk",
@@ -131,42 +140,27 @@ public class VideoChunkRepository(IAmazonDynamoDB dynamoDb, IOptions<DynamoDbOpt
             {
                 [":pk"] = new AttributeValue { S = $"VIDEO#{videoId}" }
             },
-            ProjectionExpression = "chunkId, #st, startSec, endSec, intervalSec, manifestPrefix, framesPrefix, processedAt, createdAt",
+            ProjectionExpression = projectionExpression,
             ExpressionAttributeNames = new Dictionary<string, string> { ["#st"] = "status" }
         };
+    }
 
+    private async Task<List<Dictionary<string, AttributeValue>>> QueryAllChunkItemsAsync(string videoId, string projectionExpression, CancellationToken ct)
+    {
+        var request = CreateChunksQueryRequest(videoId, projectionExpression);
+        var allItems = new List<Dictionary<string, AttributeValue>>();
         Dictionary<string, AttributeValue>? lastKey = null;
+
         do
         {
             if (lastKey is not null)
                 request.ExclusiveStartKey = lastKey;
 
             var response = await dynamoDb.QueryAsync(request, ct);
-            foreach (var item in response.Items)
-            {
-                var chunkId = item.TryGetValue("chunkId", out var c) ? c.S : null;
-                if (string.IsNullOrEmpty(chunkId) || chunkId == VideoChunkConstants.FinalizeChunkId)
-                    continue;
-
-                var status = item.TryGetValue("status", out var s) ? s.S : "pending";
-                var startSec = item.TryGetValue("startSec", out var ss) && double.TryParse(ss.N, NumberStyles.Float, CultureInfo.InvariantCulture, out var start) ? start : 0;
-                var endSec = item.TryGetValue("endSec", out var es) && double.TryParse(es.N, NumberStyles.Float, CultureInfo.InvariantCulture, out var end) ? end : 0;
-                var intervalSec = item.TryGetValue("intervalSec", out var isec) && double.TryParse(isec.N, NumberStyles.Float, CultureInfo.InvariantCulture, out var iv) ? iv : 0;
-                var manifestPrefix = item.TryGetValue("manifestPrefix", out var mp) ? mp.S : null;
-                var framesPrefix = item.TryGetValue("framesPrefix", out var fp) ? fp.S : null;
-                DateTime? processedAt = null;
-                if (item.TryGetValue("processedAt", out var pa) && !string.IsNullOrEmpty(pa.S) && DateTime.TryParse(pa.S, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var pat))
-                    processedAt = pat;
-                var createdAt = item.TryGetValue("createdAt", out var ca) && DateTime.TryParse(ca.S, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var created)
-                    ? created
-                    : DateTime.UtcNow;
-
-                list.Add(new VideoChunk(chunkId, videoId, status, startSec, endSec, intervalSec, manifestPrefix, framesPrefix, processedAt, createdAt));
-            }
-
+            allItems.AddRange(response.Items);
             lastKey = response.LastEvaluatedKey?.Count > 0 ? response.LastEvaluatedKey : null;
         } while (lastKey is not null);
 
-        return list;
+        return allItems;
     }
 }

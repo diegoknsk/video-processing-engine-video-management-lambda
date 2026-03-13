@@ -120,4 +120,31 @@ public class ChunkProgressCalculatorTests
         var result = _sut.Calculate(VideoStatus.ProcessingImages, summary);
         result.ProgressPercent.Should().Be(0);
     }
+
+    [Fact]
+    public void Calculate_WhenStatusFailedAndBasePercentHigh_ReturnsCappedAt100()
+    {
+        var summary = new ChunkStatusSummary(1, 1, 0, 0, 0, null);
+        var result = _sut.Calculate(VideoStatus.Failed, summary);
+        result.ProgressPercent.Should().Be(100);
+        result.CurrentStage.Should().Be("Falhou");
+    }
+
+    [Fact]
+    public void Calculate_WhenBasePercentBetween0And94_ReturnsThatPercent()
+    {
+        var summary = new ChunkStatusSummary(10, 5, 0, 0, 5, null);
+        var result = _sut.Calculate(VideoStatus.GeneratingZip, summary);
+        result.ProgressPercent.Should().Be(50);
+        result.CurrentStage.Should().Be("Gerando ZIP");
+    }
+
+    [Fact]
+    public void Calculate_WhenUnknownVideoStatus_ReturnsStageAsToString()
+    {
+        const int unknownStatusValue = 99;
+        var unknownStatus = (VideoStatus)unknownStatusValue;
+        var result = _sut.Calculate(unknownStatus, null);
+        result.CurrentStage.Should().Be(unknownStatusValue.ToString());
+    }
 }
